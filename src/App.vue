@@ -32,6 +32,11 @@
           <el-icon><Tools /></el-icon>
           <span>通用配置</span>
         </el-menu-item>
+        
+        <el-menu-item index="/ai-plus">
+          <el-icon><Monitor /></el-icon>
+          <span>AI+</span>
+        </el-menu-item>
       </el-menu>
     </el-aside>
     
@@ -61,7 +66,7 @@
 </template>
 
 <script setup>
-import { Platform, Setting, Picture, Money, Tools, ArrowDown } from '@element-plus/icons-vue'
+import { Platform, Setting, Picture, Money, Tools, ArrowDown, Monitor } from '@element-plus/icons-vue'
 </script>
 
 <style>

@@ -1,50 +1,329 @@
 <template>
-  <div class="payment">
-    <el-card>
+  <div class="payment-management">
+    <div class="layout-container">
+      <!-- 左侧小程序列表 -->
+      <el-card class="app-list-card">
       <template #header>
         <div class="header">
-          <h3>支付配置</h3>
-          <el-button type="primary" @click="handleAdd">添加支付配置</el-button>
+            <h3>小程序列表</h3>
+            <div>
+              <el-input
+                v-model="searchQuery"
+                placeholder="搜索小程序"
+                style="width: 200px; margin-right: 15px"
+              >
+                <template #prefix>
+                  <el-icon><Search /></el-icon>
+                </template>
+              </el-input>
+              <el-button type="primary" @click="handleRefresh">刷新数据</el-button>
+            </div>
         </div>
       </template>
 
-      <el-table :data="paymentConfigs" style="width: 100%">
-        <el-table-column prop="platform" label="平台">
+        <div v-loading="loadingApps">
+          <template v-if="filteredApps.length === 0">
+            <el-empty 
+              :image-size="200"
+              description="暂无小程序数据"
+            >
+              <template #description>
+                <div class="empty-description">
+                  <p>还没有找到任何小程序</p>
+                  <p class="sub-text">点击刷新按钮获取最新数据</p>
+                </div>
+              </template>
+              <el-button type="primary" @click="handleRefresh">
+                <el-icon><Refresh /></el-icon>
+                立即刷新
+              </el-button>
+            </el-empty>
+          </template>
+          
+          <el-table 
+            v-else
+            :data="filteredApps" 
+            style="width: 100%"
+            @row-click="handleAppSelect"
+            row-key="id"
+            :highlight-current-row="true"
+          >
+            <el-table-column prop="platform" label="平台" width="80">
           <template #default="scope">
-            <el-tag :type="getPlatformType(scope.row.platform)" effect="light">
+                <el-tag :type="getPlatformType(scope.row.platform)" effect="light" size="small">
               {{ scope.row.platform }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="appName" label="小程序" />
-        <el-table-column prop="payType" label="支付类型" />
-        <el-table-column prop="merchantId" label="商户号" />
-        <el-table-column prop="status" label="状态">
-          <template #default="scope">
-            <el-tag :type="scope.row.status === '启用' ? 'success' : 'danger'">
-              {{ scope.row.status }}
-            </el-tag>
+            <el-table-column prop="appName" label="小程序名称" width="180" />
+            <el-table-column prop="appid" label="AppID" width="220" />
+          </el-table>
+        </div>
+      </el-card>
+
+      <!-- 右侧支付配置 -->
+      <el-card class="payment-config-card">
+        <template #header>
+          <div class="header">
+            <h3 class="title-with-tag" v-if="selectedApp">
+              支付配置 - {{ selectedApp.appName }}
+              <el-tag :type="getPlatformType(selectedApp.platform)" effect="light" size="small" class="platform-tag">
+                {{ selectedApp.platform }}
+              </el-tag>
+            </h3>
+            <h3 v-else>支付配置</h3>
+          </div>
+        </template>
+
+        <div class="payment-config-content">
+          <template v-if="selectedApp">
+            <div class="payment-config-grid">
+              <!-- 普通支付配置 -->
+              <el-card class="payment-type-card" :body-style="{ padding: '0' }">
+                <div class="payment-card-wrapper">
+                  <!-- 支付类型标题区 -->
+                  <div class="payment-card-header" :class="{ 'configured': paymentConfig?.normalPay }">
+                    <div class="payment-type-info">
+                      <el-icon><Money /></el-icon>
+                      <div class="payment-type-title">
+                        <h4>{{ getPaymentTypeName('normalPay') }}</h4>
+                      </div>
+                    </div>
+                    <el-tag size="small" :type="paymentConfig?.normalPay ? 'success' : 'info'" effect="plain">
+                      {{ paymentConfig?.normalPay ? '已配置' : '未配置' }}
+                    </el-tag>
+                  </div>
+
+                  <!-- 支付配置内容区 -->
+                  <div class="payment-card-content" v-loading="loadingPaymentConfig">
+                    <template v-if="paymentConfig?.normalPay">
+                      <div class="payment-info-list">
+                        <div class="payment-info-item">
+                          <span class="label">状态</span>
+                          <el-tag size="small" :type="paymentConfig.normalPay.enabled ? 'success' : 'danger'" effect="light">
+                            {{ paymentConfig.normalPay.enabled ? '已配置' : '未配置' }}
+                          </el-tag>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (Android)</span>
+                          <span class="value">{{ paymentConfig.normalPay.gatewayAndroid }}</span>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (iOS)</span>
+                          <span class="value">{{ paymentConfig.normalPay.gatewayIos }}</span>
+                        </div>
+                      </div>
+                    </template>
+                    <el-empty v-else description="暂未配置普通支付" :image-size="60" />
+                  </div>
+
+                  <!-- 操作按钮区 -->
+                  <div class="payment-card-footer">
+                    <template v-if="paymentConfig?.normalPay">
+                      <el-button type="primary" link @click="handleEditPayment('normalPay')">
+                        <el-icon><Edit /></el-icon>编辑
+                      </el-button>
+                      <el-button type="danger" link @click="handleDeletePayment('normalPay')">
+                        <el-icon><Delete /></el-icon>删除
+                      </el-button>
+                    </template>
+                    <template v-else>
+                      <el-button type="primary" @click="handleCreatePayment('normalPay')">
+                        <el-icon><Plus /></el-icon>新建配置
+                      </el-button>
+                    </template>
+                  </div>
+                </div>
+              </el-card>
+
+              <!-- 订单支付配置 -->
+              <el-card class="payment-type-card" :body-style="{ padding: '0' }">
+                <div class="payment-card-wrapper">
+                  <!-- 支付类型标题区 -->
+                  <div class="payment-card-header" :class="{ 'configured': paymentConfig?.orderPay }">
+                    <div class="payment-type-info">
+                      <el-icon><Goods /></el-icon>
+                      <div class="payment-type-title">
+                        <h4>{{ getPaymentTypeName('orderPay') }}</h4>
+                      </div>
+                    </div>
+                    <el-tag size="small" :type="paymentConfig?.orderPay ? 'success' : 'info'" effect="plain">
+                      {{ paymentConfig?.orderPay ? '已配置' : '未配置' }}
+                    </el-tag>
+                  </div>
+
+                  <!-- 支付配置内容区 -->
+                  <div class="payment-card-content" v-loading="loadingPaymentConfig">
+                    <template v-if="paymentConfig?.orderPay">
+                      <div class="payment-info-list">
+                        <div class="payment-info-item">
+                          <span class="label">状态</span>
+                          <el-tag size="small" :type="paymentConfig.orderPay.enabled ? 'success' : 'danger'" effect="light">
+                            {{ paymentConfig.orderPay.enabled ? '已配置' : '未配置' }}
+                          </el-tag>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (Android)</span>
+                          <span class="value">{{ paymentConfig.orderPay.gatewayAndroid }}</span>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (iOS)</span>
+                          <span class="value">{{ paymentConfig.orderPay.gatewayIos }}</span>
+                        </div>
+                      </div>
+                    </template>
+                    <el-empty v-else description="暂未配置通用交易支付" :image-size="60" />
+                  </div>
+
+                  <!-- 操作按钮区 -->
+                  <div class="payment-card-footer">
+                    <template v-if="paymentConfig?.orderPay">
+                      <el-button type="primary" link @click="handleEditPayment('orderPay')">
+                        <el-icon><Edit /></el-icon>编辑
+                      </el-button>
+                      <el-button type="danger" link @click="handleDeletePayment('orderPay')">
+                        <el-icon><Delete /></el-icon>删除
+                      </el-button>
+                    </template>
+                    <template v-else>
+                      <el-button type="primary" @click="handleCreatePayment('orderPay')">
+                        <el-icon><Plus /></el-icon>新建配置
+                      </el-button>
+                    </template>
+                  </div>
+                </div>
+              </el-card>
+
+              <!-- 续费支付配置 -->
+              <el-card class="payment-type-card" :body-style="{ padding: '0' }">
+                <div class="payment-card-wrapper">
+                  <!-- 支付类型标题区 -->
+                  <div class="payment-card-header" :class="{ 'configured': paymentConfig?.renewPay }">
+                    <div class="payment-type-info">
+                      <el-icon><Calendar /></el-icon>
+                      <div class="payment-type-title">
+                        <h4>{{ getPaymentTypeName('renewPay') }}</h4>
+                      </div>
+                    </div>
+                    <el-tag size="small" :type="paymentConfig?.renewPay ? 'success' : 'info'" effect="plain">
+                      {{ paymentConfig?.renewPay ? '已配置' : '未配置' }}
+                    </el-tag>
+                  </div>
+
+                  <!-- 支付配置内容区 -->
+                  <div class="payment-card-content" v-loading="loadingPaymentConfig">
+                    <template v-if="paymentConfig?.renewPay">
+                      <div class="payment-info-list">
+                        <div class="payment-info-item">
+                          <span class="label">状态</span>
+                          <el-tag size="small" :type="paymentConfig.renewPay.enabled ? 'success' : 'danger'" effect="light">
+                            {{ paymentConfig.renewPay.enabled ? '已配置' : '未配置' }}
+                          </el-tag>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (Android)</span>
+                          <span class="value">{{ paymentConfig.renewPay.gatewayAndroid }}</span>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (iOS)</span>
+                          <span class="value">{{ paymentConfig.renewPay.gatewayIos }}</span>
+                        </div>
+                      </div>
+                    </template>
+                    <el-empty v-else description="暂未配置连包支付" :image-size="60" />
+                  </div>
+
+                  <!-- 操作按钮区 -->
+                  <div class="payment-card-footer">
+                    <template v-if="paymentConfig?.renewPay">
+                      <el-button type="primary" link @click="handleEditPayment('renewPay')">
+                        <el-icon><Edit /></el-icon>编辑
+                      </el-button>
+                      <el-button type="danger" link @click="handleDeletePayment('renewPay')">
+                        <el-icon><Delete /></el-icon>删除
+                      </el-button>
+                    </template>
+                    <template v-else>
+                      <el-button type="primary" @click="handleCreatePayment('renewPay')">
+                        <el-icon><Plus /></el-icon>新建配置
+                      </el-button>
+                    </template>
+                  </div>
+                </div>
+              </el-card>
+
+              <!-- 抖赞支付配置 -->
+              <el-card class="payment-type-card" :body-style="{ padding: '0' }">
+                <div class="payment-card-wrapper">
+                  <!-- 支付类型标题区 -->
+                  <div class="payment-card-header" :class="{ 'configured': paymentConfig?.douzuanPay }">
+                    <div class="payment-type-info">
+                      <el-icon><Star /></el-icon>
+                      <div class="payment-type-title">
+                        <h4>{{ getPaymentTypeName('douzuanPay') }}</h4>
+                      </div>
+                    </div>
+                    <el-tag size="small" :type="paymentConfig?.douzuanPay ? 'success' : 'info'" effect="plain">
+                      {{ paymentConfig?.douzuanPay ? '已配置' : '未配置' }}
+                    </el-tag>
+                  </div>
+
+                  <!-- 支付配置内容区 -->
+                  <div class="payment-card-content" v-loading="loadingPaymentConfig">
+                    <template v-if="paymentConfig?.douzuanPay">
+                      <div class="payment-info-list">
+                        <div class="payment-info-item">
+                          <span class="label">状态</span>
+                          <el-tag size="small" :type="paymentConfig.douzuanPay.enabled ? 'success' : 'danger'" effect="light">
+                            {{ paymentConfig.douzuanPay.enabled ? '已启用' : '未启用' }}
+                          </el-tag>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (Android)</span>
+                          <span class="value">{{ paymentConfig.douzuanPay.gatewayAndroid }}</span>
+                        </div>
+                        <div class="payment-info-item">
+                          <span class="label">网关 (iOS)</span>
+                          <span class="value">{{ paymentConfig.douzuanPay.gatewayIos }}</span>
+                        </div>
+                      </div>
+                    </template>
+                    <el-empty v-else description="暂未配置抖钻支付" :image-size="60" />
+                  </div>
+
+                  <!-- 操作按钮区 -->
+                  <div class="payment-card-footer">
+                    <template v-if="paymentConfig?.douzuanPay">
+                      <el-button type="primary" link @click="handleEditPayment('douzuanPay')">
+                        <el-icon><Edit /></el-icon>编辑
+                      </el-button>
+                      <el-button type="danger" link @click="handleDeletePayment('douzuanPay')">
+                        <el-icon><Delete /></el-icon>删除
+                      </el-button>
+                    </template>
+                    <template v-else>
+                      <el-button type="primary" @click="handleCreatePayment('douzuanPay')">
+                        <el-icon><Plus /></el-icon>新建配置
+                      </el-button>
+                    </template>
+                  </div>
+                </div>
+              </el-card>
+            </div>
           </template>
-        </el-table-column>
-        <el-table-column label="操作" width="250">
-          <template #default="scope">
-            <el-button 
-              size="small"
-              @click="handleEdit(scope.row)"
+          <template v-else>
+            <el-empty 
+              description="请先选择一个小程序" 
+              :image-size="200"
             >
-              编辑
-            </el-button>
-            <el-button
-              size="small"
-              type="danger"
-              @click="handleDelete(scope.row)"
-            >
-              删除
-            </el-button>
+              <template #description>
+                <p>请从左侧列表选择一个小程序以配置其支付选项</p>
+              </template>
+            </el-empty>
           </template>
-        </el-table-column>
-      </el-table>
+        </div>
     </el-card>
+    </div>
 
     <!-- 支付配置对话框 -->
     <el-dialog
@@ -53,51 +332,20 @@
       width="50%"
     >
       <el-form :model="form" label-width="120px">
-        <el-form-item label="platform">
-          <el-select v-model="form.platform">
-            <el-option label="抖音小程序" value="抖音" />
-            <el-option label="快手小程序" value="快手" />
-            <el-option label="微信小程序" value="微信" />
-            <el-option label="百度小程序" value="百度" />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="appId">
-          <el-select v-model="form.appId" placeholder="选择小程序">
-            <el-option 
-              v-for="app in appOptions" 
-              :key="app.id" 
-              :label="app.appName" 
-              :value="app.id"
-            />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="payType">
-          <el-select v-model="form.payType">
-            <el-option label="微信支付" value="wechat" />
-            <el-option label="支付宝" value="alipay" />
-          </el-select>
-        </el-form-item>
-        
-        <el-form-item label="merchantId">
-          <el-input v-model="form.merchantId" placeholder="请输入商户号" />
-        </el-form-item>
-        
-        <el-form-item label="merchantKey">
-          <el-input v-model="form.merchantKey" placeholder="请输入商户密钥" show-password />
-        </el-form-item>
-        
-        <el-form-item label="notifyUrl">
-          <el-input v-model="form.notifyUrl" placeholder="请输入回调地址" />
-        </el-form-item>
-        
-        <el-form-item label="status">
+        <el-form-item label="状态">
           <el-switch
             v-model="form.status"
+            active-text="启用"
+            inactive-text="禁用"
             :active-value="'启用'"
             :inactive-value="'禁用'"
           />
+        </el-form-item>
+        <el-form-item label="网关 (Android)">
+          <el-input v-model="form.gatewayAndroid" placeholder="请输入网关 (Android)" />
+        </el-form-item>
+        <el-form-item label="网关 (iOS)">
+          <el-input v-model="form.gatewayIos" placeholder="请输入网关 (iOS)" />
         </el-form-item>
       </el-form>
       
@@ -114,70 +362,98 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Refresh, Money, Goods, Calendar, Star, Edit, Delete, Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
-const paymentConfigs = ref([])
+const searchQuery = ref('')
+const loadingApps = ref(false)
+const loadingPaymentConfig = ref(false)
+const apps = ref([])
+const selectedApp = ref(null)
+const paymentConfig = ref(null)
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const form = ref({
-  platform: '',
-  appId: '',
   payType: '',
   merchantId: '',
   merchantKey: '',
   notifyUrl: '',
   status: '启用'
 })
-const appOptions = ref([])
+const currentPaymentType = ref('')
 
-// 获取小程序列表作为选项
-const fetchAppOptions = async () => {
+// 过滤小程序列表
+const filteredApps = computed(() => {
+  if (!searchQuery.value) return apps.value
+  return apps.value.filter(app => 
+    app.appName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    app.appid.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+
+// 获取小程序列表
+const fetchApps = async () => {
+  loadingApps.value = true
   try {
     const res = await request.get('/api/novel-apps/appLists')
     const data = res.data
     
-    let apps = []
+    let appList = []
     Object.values(data).forEach(platformApps => {
-      apps = [...apps, ...platformApps.map(app => ({
+      appList = [...appList, ...platformApps.map(app => ({
         id: app.id,
+        platform: getPlatformName(app.platform),
         appName: app.appName,
-        platform: app.platform
+        appid: app.appid
       }))]
     })
     
-    appOptions.value = apps
+    apps.value = appList
   } catch (error) {
     console.error('获取小程序列表失败:', error)
-  }
-}
-
-// 获取支付配置列表
-const fetchPaymentConfigs = async () => {
-  try {
-    // 暂时使用模拟数据，后续可以替换为真实接口
-    paymentConfigs.value = [
+    // 使用模拟数据
+    apps.value = [
       {
         id: 1,
-        platform: '微信',
+        appid: 'wx123456789',
         appName: '云游小说',
-        payType: '微信支付',
-        merchantId: '12345678',
-        status: '启用'
+        platform: '微信'
       },
       {
         id: 2,
-        platform: '抖音',
+        appid: 'tt987654321',
         appName: '看点小说',
-        payType: '支付宝',
-        merchantId: '87654321',
-        status: '启用'
+        platform: '抖音'
       }
     ]
-  } catch (error) {
-    console.error('获取支付配置失败:', error)
+  } finally {
+    loadingApps.value = false
   }
 }
 
+// 获取支付配置信息
+const fetchPaymentConfig = async (appId) => {
+  if (!appId) return
+  
+  loadingPaymentConfig.value = true
+  try {
+    const res = await request.get('/api/novel-pay/getAppPayByAppId', {
+      params: { appId }
+    })
+    if (res.code === 200) {
+      paymentConfig.value = res.data
+    } else {
+      throw new Error(res.message || '获取支付配置失败')
+    }
+  } catch (error) {
+    console.error('获取支付配置失败:', error)
+    paymentConfig.value = null
+  } finally {
+    loadingPaymentConfig.value = false
+  }
+}
+
+// 平台类型和名称转换
 const getPlatformType = (platform) => {
   const types = {
     '抖音': 'info',
@@ -188,74 +464,325 @@ const getPlatformType = (platform) => {
   return types[platform] || 'info'
 }
 
-const handleAdd = () => {
-  isEdit.value = false
+const getPlatformName = (platformCode) => {
+  const platforms = {
+    'douyin': '抖音',
+    'kuaishou': '快手',
+    'weixin': '微信',
+    'baidu': '百度'
+  }
+  return platforms[platformCode] || platformCode
+}
+
+const handleRefresh = () => {
+  fetchApps()
+}
+
+const handleAppSelect = (row) => {
+  selectedApp.value = row
+  fetchPaymentConfig(row.appid)
+}
+
+const handleCreatePayment = async (type) => {
+  if (!selectedApp.value?.appid) {
+    ElMessage.warning('请先选择小程序')
+    return
+  }
+
+  currentPaymentType.value = type
   form.value = {
-    platform: '',
-    appId: '',
-    payType: '',
-    merchantId: '',
-    merchantKey: '',
-    notifyUrl: '',
-    status: '启用'
+    status: '禁用',
+    gatewayAndroid: '',
+    gatewayIos: ''
   }
   dialogVisible.value = true
 }
 
-const handleEdit = (config) => {
+const handleEditPayment = (type) => {
   isEdit.value = true
-  form.value = { ...config }
+  currentPaymentType.value = type
+  form.value = {
+    status: paymentConfig.value[type]?.enabled ? '启用' : '禁用',
+    gatewayAndroid: paymentConfig.value[type]?.gatewayAndroid || '',
+    gatewayIos: paymentConfig.value[type]?.gatewayIos || ''
+  }
   dialogVisible.value = true
 }
 
-const handleDelete = (config) => {
-  ElMessageBox.confirm(`确定要删除该支付配置吗？`, '提示', {
+const handleDeletePayment = (type) => {
+  if (!selectedApp.value?.appid) {
+    ElMessage.warning('请先选择小程序')
+    return
+  }
+
+  ElMessageBox.confirm(`确定要删除${getPaymentTypeName(type)}配置吗？`, '提示', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    paymentConfigs.value = paymentConfigs.value.filter(item => item.id !== config.id)
-    ElMessage.success('删除成功')
+  }).then(async () => {
+    try {
+      const res = await request.get('/api/novel-pay/deleteAppPayByAppIdAndType', {
+        params: {
+          appId: selectedApp.value.appid,
+          payType: type
+        }
+      })
+      
+      if (res.code === 200) {
+        ElMessage.success('删除成功')
+        // 重新获取支付配置
+        await fetchPaymentConfig(selectedApp.value.appid)
+      } else {
+        throw new Error(res.message || '删除失败')
+      }
+    } catch (error) {
+      console.error('删除失败:', error)
+      ElMessage.error(error.message || '删除失败')
+    }
+  }).catch(() => {
+    // 取消删除操作
   })
 }
 
-const handleSave = () => {
-  if (!form.value.platform || !form.value.appId || !form.value.payType || !form.value.merchantId) {
+const handleSave = async () => {
+  if (!form.value.gatewayAndroid || !form.value.gatewayIos) {
     ElMessage.error('请填写完整信息')
     return
   }
   
-  if (isEdit.value) {
-    const index = paymentConfigs.value.findIndex(item => item.id === form.value.id)
-    if (index !== -1) {
-      paymentConfigs.value[index] = { ...form.value }
+  try {
+    const requestData = {
+      appId: selectedApp.value.appid,
+      payType: currentPaymentType.value,
+      enabled: form.value.status === '启用',
+      gatewayAndroid: form.value.gatewayAndroid,
+      gatewayIos: form.value.gatewayIos
     }
-  } else {
-    paymentConfigs.value.push({
-      id: Date.now(),
-      ...form.value,
-      appName: appOptions.value.find(app => app.id === form.value.appId)?.appName
-    })
+    
+    const apiUrl = isEdit.value 
+      ? '/api/novel-pay/updateAppPay' 
+      : '/api/novel-pay/create'
+
+    const res = await request.post(apiUrl, requestData)
+    
+    if (res.code === 200) {
+      ElMessage.success(isEdit.value ? '更新成功' : '创建成功')
+      paymentConfig.value = res.data
+      dialogVisible.value = false
+    } else {
+      throw new Error(res.message || (isEdit.value ? '更新失败' : '创建失败'))
+    }
+  } catch (error) {
+    console.error(isEdit.value ? '更新失败:' : '创建失败:', error)
+    ElMessage.error(error.message || (isEdit.value ? '更新失败' : '创建失败'))
   }
-  
-  ElMessage.success('保存成功')
-  dialogVisible.value = false
+}
+
+const getPaymentTypeName = (type) => {
+  const names = {
+    normalPay: '普通支付',
+    orderPay: '通用交易支付',
+    renewPay: '连包支付',
+    douzuanPay: '抖钻支付'
+  }
+  return names[type] || type
 }
 
 onMounted(() => {
-  fetchAppOptions()
-  fetchPaymentConfigs()
+  fetchApps()
 })
 </script>
 
 <style scoped>
-.payment {
+.payment-management {
   padding: 20px;
+}
+
+.layout-container {
+  display: flex;
+  gap: 20px;
+}
+
+.app-list-card {
+  flex: 0 0 500px; /* 固定宽度 */
+  max-height: calc(100vh - 80px); /* 设置最大高度，减去上下padding的值 */
+  display: flex;
+  flex-direction: column;
+}
+
+.app-list-card :deep(.el-card__body) {
+  flex: 1;
+  overflow-y: auto; /* 添加垂直滚动 */
+  padding: 0; /* 移除默认内边距 */
+}
+
+.app-list-card .el-table {
+  height: 100%;
+}
+
+.app-list-card :deep(.el-card__body)::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-list-card :deep(.el-card__body)::-webkit-scrollbar-thumb {
+  background: #dcdfe6;
+  border-radius: 3px;
+}
+
+.app-list-card :deep(.el-card__body)::-webkit-scrollbar-track {
+  background: #f5f7fa;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.payment-config-card {
+  flex: 1; /* 占据剩余空间 */
+  min-width: 0; /* 防止内容溢出 */
+}
+
+.payment-config-content {
+  min-height: 200px;
+}
+
+.title-with-tag {
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.platform-tag {
+  margin-left: 8px;
+}
+
+.empty-description {
+  text-align: center;
+  color: #909399;
+}
+
+.empty-description .sub-text {
+  font-size: 12px;
+  margin-top: 8px;
+  color: #C0C4CC;
+}
+
+.el-empty {
+  padding: 40px 0;
+}
+
+.empty-config {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;  /* 设置最小高度，使空状态垂直居中 */
+}
+
+.empty-config .el-empty {
+  padding: 0;
+}
+
+.payment-config-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding: 24px;
+}
+
+.payment-type-card {
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+}
+
+.payment-type-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.08);
+}
+
+.payment-card-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-card-header {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ebeef5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-card-header.configured {
+  background-color: #f0f9eb;
+}
+
+.payment-type-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-type-info el-icon {
+  font-size: 24px;
+  color: #409eff;
+}
+
+.payment-type-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-type-title h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #303133;
+}
+
+.payment-type-desc {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.payment-card-content {
+  flex: 1;
+  padding: 20px;
+  min-height: 160px;
+}
+
+.payment-info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.payment-info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.payment-info-item .label {
+  color: #909399;
+  font-size: 14px;
+}
+
+.payment-info-item .value {
+  color: #303133;
+  font-weight: 500;
+}
+
+.payment-card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #ebeef5;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 </style> 
