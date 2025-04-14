@@ -411,21 +411,8 @@ const fetchApps = async () => {
     apps.value = appList
   } catch (error) {
     console.error('获取小程序列表失败:', error)
-    // 使用模拟数据
-    apps.value = [
-      {
-        id: 1,
-        appid: 'wx123456789',
-        appName: '云游小说',
-        platform: '微信'
-      },
-      {
-        id: 2,
-        appid: 'tt987654321',
-        appName: '看点小说',
-        platform: '抖音'
-      }
-    ]
+    ElMessage.error('获取小程序列表失败')
+    apps.value = []
   } finally {
     loadingApps.value = false
   }

@@ -142,13 +142,6 @@
             </el-button>
             <el-button
               size="small"
-              type="success"
-              @click="handleConfig(scope.row)"
-            >
-              配置
-            </el-button>
-            <el-button
-              size="small"
               type="danger"
               @click="handleDelete(scope.row)"
             >
@@ -390,10 +383,6 @@ const handleEdit = (app) => {
   dialogVisible.value = true
 }
 
-const handleConfig = (app) => {
-  // 实现配置逻辑
-  ElMessage.info(`配置${app.platform}小程序：${app.appName}`)
-}
 
 const handleDelete = (app) => {
   ElMessageBox.confirm(`确定要删除${app.platform}小程序：${app.appName}吗？`, '提示', {
