@@ -78,20 +78,55 @@
         <div class="config-content">
           <template v-if="selectedApp">
             <div class="config-form" v-loading="loadingConfig">
-              <el-form :model="configForm" label-width="120px">
-                <el-form-item label="系统名称">
-                  <el-input v-model="configForm.systemName" placeholder="请输入系统名称" />
-                </el-form-item>
-                <el-form-item label="管理员邮箱">
-                  <el-input v-model="configForm.adminEmail" placeholder="请输入管理员邮箱" />
-                </el-form-item>
-                <el-form-item label="日志保留天数">
-                  <el-input-number v-model="configForm.logRetentionDays" :min="1" :max="90" />
-                </el-form-item>
-                <el-form-item>
-                  <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
-                </el-form-item>
-              </el-form>
+              <template v-if="!configForm.id">
+                <el-empty 
+                  description="暂无配置信息" 
+                  :image-size="100"
+                >
+                  <template #description>
+                    <p>当前小程序尚未配置通用信息</p>
+                    <p class="sub-text">点击下方按钮创建配置</p>
+                  </template>
+                  <el-button type="primary" @click="handleCreateConfig">
+                    创建配置
+                  </el-button>
+                </el-empty>
+              </template>
+              <template v-else>
+                <el-form :model="configForm" label-width="160px">
+                  <el-form-item label="配置ID">
+                    <span class="readonly-value">{{ configForm.id }}</span>
+                  </el-form-item>
+                  <el-form-item label="AppID">
+                    <span class="readonly-value">{{ configForm.appId }}</span>
+                  </el-form-item>
+
+                  <!-- Conditionally show Douyin field -->
+                  <template v-if="selectedApp.platform === '抖音'">
+                    <el-form-item label="抖音IM ID">
+                      <el-input v-model="configForm.douyinImId" placeholder="请输入抖音IM ID" />
+                    </el-form-item>
+                  </template>
+
+                  <!-- Conditionally show Kuaishou fields -->
+                  <template v-if="selectedApp.platform === '快手'">
+                    <el-form-item label="快手Client ID">
+                      <el-input v-model="configForm.kuaishouClientId" placeholder="请输入快手Client ID" />
+                    </el-form-item>
+                    <el-form-item label="快手Client Secret">
+                      <el-input v-model="configForm.kuaishouClientSecret" placeholder="请输入快手Client Secret" show-password />
+                    </el-form-item>
+                  </template>
+
+                  <el-form-item label="客服URL">
+                    <el-input v-model="configForm.contact" placeholder="请输入客服URL" />
+                  </el-form-item>
+
+                  <el-form-item>
+                    <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
+                  </el-form-item>
+                </el-form>
+              </template>
             </div>
           </template>
           <template v-else>
@@ -124,9 +159,12 @@ const saving = ref(false)
 const apps = ref([])
 const selectedApp = ref(null)
 const configForm = ref({
-  systemName: '',
-  adminEmail: '',
-  logRetentionDays: 30
+  id: null,
+  appId: '',
+  contact: '',
+  douyinImId: '',
+  kuaishouClientId: '',
+  kuaishouClientSecret: ''
 })
 
 // 过滤小程序列表
@@ -171,21 +209,33 @@ const fetchConfig = async (appId) => {
   
   loadingConfig.value = true
   try {
-    const res = await request.get('/api/novel-config/getConfig', {
+    const res = await request.get('/api/novel-common/getAppCommonConfig', {
       params: { appId }
     })
     if (res.code === 200) {
       configForm.value = {
-        systemName: res.data.systemName || '',
-        adminEmail: res.data.adminEmail || '',
-        logRetentionDays: res.data.logRetentionDays || 30
+        id: res.data.id || null,
+        appId: res.data.appId || '',
+        contact: res.data.contact || '',
+        douyinImId: res.data.douyinImId || '',
+        kuaishouClientId: res.data.kuaishouClientId || '',
+        kuaishouClientSecret: res.data.kuaishouClientSecret || ''
       }
     } else {
       throw new Error(res.message || '获取配置失败')
     }
   } catch (error) {
     console.error('获取配置失败:', error)
-    ElMessage.error(error.message || '获取配置失败')
+    // ElMessage.error(error.message || '获取配置失败')
+    // 重置配置表单
+    configForm.value = {
+      id: null,
+      appId: selectedApp.value.appid,
+      contact: '',
+      douyinImId: '',
+      kuaishouClientId: '',
+      kuaishouClientSecret: ''
+    }
   } finally {
     loadingConfig.value = false
   }
@@ -232,10 +282,17 @@ const handleSaveConfig = async () => {
 
   saving.value = true
   try {
-    const res = await request.post('/api/novel-config/updateConfig', {
+    // 只提交必要的字段
+    const requestData = {
+      id: configForm.value.id,
       appId: selectedApp.value.appid,
-      ...configForm.value
-    })
+      contact: configForm.value.contact,
+      douyinImId: configForm.value.douyinImId,
+      kuaishouClientId: configForm.value.kuaishouClientId,
+      kuaishouClientSecret: configForm.value.kuaishouClientSecret
+    }
+
+    const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
     
     if (res.code === 200) {
       ElMessage.success('配置保存成功')
@@ -245,6 +302,48 @@ const handleSaveConfig = async () => {
   } catch (error) {
     console.error('保存配置失败:', error)
     ElMessage.error(error.message || '保存配置失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+// 创建配置
+const handleCreateConfig = async () => {
+  if (!selectedApp.value?.appid) {
+    ElMessage.warning('请先选择小程序')
+    return
+  }
+
+  saving.value = true
+  try {
+    // 只提交必要的字段
+    const requestData = {
+      appId: selectedApp.value.appid,
+      contact: configForm.value.contact,
+      douyinImId: configForm.value.douyinImId,
+      kuaishouClientId: configForm.value.kuaishouClientId,
+      kuaishouClientSecret: configForm.value.kuaishouClientSecret
+    }
+
+    const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
+    
+    if (res.code === 200) {
+      ElMessage.success('配置创建成功')
+      // 直接使用返回的数据更新表单
+      configForm.value = {
+        id: res.data.id,
+        appId: res.data.appId,
+        contact: res.data.contact || '',
+        douyinImId: res.data.douyinImId || '',
+        kuaishouClientId: res.data.kuaishouClientId || '',
+        kuaishouClientSecret: res.data.kuaishouClientSecret || ''
+      }
+    } else {
+      throw new Error(res.message || '创建失败')
+    }
+  } catch (error) {
+    console.error('创建配置失败:', error)
+    ElMessage.error(error.message || '创建配置失败')
   } finally {
     saving.value = false
   }
@@ -336,8 +435,19 @@ onMounted(() => {
 }
 
 .config-form {
-  max-width: 600px;
+  max-width: 800px;
   margin: 20px auto;
   padding: 20px;
+}
+
+.readonly-value {
+  color: #606266;
+  font-size: 14px;
+}
+
+.sub-text {
+  font-size: 12px;
+  margin-top: 8px;
+  color: #C0C4CC;
 }
 </style> 
