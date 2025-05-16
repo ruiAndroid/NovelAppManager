@@ -122,8 +122,23 @@
                     <el-input v-model="configForm.contact" placeholder="请输入客服URL" />
                   </el-form-item>
 
+                  <el-form-item label="支付卡片样式">
+                    <el-select v-model="configForm.payCardStyle" placeholder="请选择支付卡片样式">
+                      <el-option :value="1" label="样式1" />
+                      <el-option :value="2" label="样式2" />
+                      <el-option :value="3" label="样式3" />
+                      <el-option :value="4" label="样式4" />
+                    </el-select>
+                  </el-form-item>
+                  <el-form-item label="首页卡片样式">
+                    <el-select v-model="configForm.homeCardStyle" placeholder="请选择首页卡片样式">
+                      <el-option :value="1" label="样式1" />
+                    </el-select>
+                  </el-form-item>
+
                   <el-form-item>
                     <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
+                    <el-button type="danger" @click="handleDeleteConfirm" v-if="configForm.id">删除配置</el-button>
                   </el-form-item>
                 </el-form>
               </template>
@@ -142,6 +157,21 @@
         </div>
       </el-card>
     </div>
+
+    <!-- 删除确认对话框 -->
+    <el-dialog
+      v-model="deleteDialogVisible"
+      title="确认删除"
+      width="30%"
+    >
+      <span>确定要删除该配置吗？此操作不可恢复。</span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="deleteDialogVisible = false">取消</el-button>
+          <el-button type="danger" @click="handleDeleteConfig">确定</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -158,13 +188,16 @@ const loadingConfig = ref(false)
 const saving = ref(false)
 const apps = ref([])
 const selectedApp = ref(null)
+const deleteDialogVisible = ref(false)
 const configForm = ref({
   id: null,
   appId: '',
   contact: '',
   douyinImId: '',
   kuaishouClientId: '',
-  kuaishouClientSecret: ''
+  kuaishouClientSecret: '',
+  payCardStyle: null,
+  homeCardStyle: null
 })
 
 // 过滤小程序列表
@@ -219,7 +252,9 @@ const fetchConfig = async (appId) => {
         contact: res.data.contact || '',
         douyinImId: res.data.douyinImId || '',
         kuaishouClientId: res.data.kuaishouClientId || '',
-        kuaishouClientSecret: res.data.kuaishouClientSecret || ''
+        kuaishouClientSecret: res.data.kuaishouClientSecret || '',
+        payCardStyle: res.data.payCardStyle ?? null,
+        homeCardStyle: res.data.homeCardStyle ?? null
       }
     } else {
       throw new Error(res.message || '获取配置失败')
@@ -234,7 +269,9 @@ const fetchConfig = async (appId) => {
       contact: '',
       douyinImId: '',
       kuaishouClientId: '',
-      kuaishouClientSecret: ''
+      kuaishouClientSecret: '',
+      payCardStyle: null,
+      homeCardStyle: null
     }
   } finally {
     loadingConfig.value = false
@@ -289,7 +326,9 @@ const handleSaveConfig = async () => {
       contact: configForm.value.contact,
       douyinImId: configForm.value.douyinImId,
       kuaishouClientId: configForm.value.kuaishouClientId,
-      kuaishouClientSecret: configForm.value.kuaishouClientSecret
+      kuaishouClientSecret: configForm.value.kuaishouClientSecret,
+      payCardStyle: configForm.value.payCardStyle,
+      homeCardStyle: configForm.value.homeCardStyle
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -322,7 +361,9 @@ const handleCreateConfig = async () => {
       contact: configForm.value.contact,
       douyinImId: configForm.value.douyinImId,
       kuaishouClientId: configForm.value.kuaishouClientId,
-      kuaishouClientSecret: configForm.value.kuaishouClientSecret
+      kuaishouClientSecret: configForm.value.kuaishouClientSecret,
+      payCardStyle: configForm.value.payCardStyle,
+      homeCardStyle: configForm.value.homeCardStyle
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -336,7 +377,9 @@ const handleCreateConfig = async () => {
         contact: res.data.contact || '',
         douyinImId: res.data.douyinImId || '',
         kuaishouClientId: res.data.kuaishouClientId || '',
-        kuaishouClientSecret: res.data.kuaishouClientSecret || ''
+        kuaishouClientSecret: res.data.kuaishouClientSecret || '',
+        payCardStyle: res.data.payCardStyle ?? null,
+        homeCardStyle: res.data.homeCardStyle ?? null
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -346,6 +389,52 @@ const handleCreateConfig = async () => {
     ElMessage.error(error.message || '创建配置失败')
   } finally {
     saving.value = false
+  }
+}
+
+// 显示删除确认对话框
+const handleDeleteConfirm = () => {
+  deleteDialogVisible.value = true
+}
+
+// 执行删除操作
+const handleDeleteConfig = async () => {
+  if (!selectedApp.value?.appid) {
+    ElMessage.warning('请先选择小程序')
+    return
+  }
+
+  loadingConfig.value = true
+  try {
+    const res = await request.get('/api/novel-common/deleteAppCommonConfig', {
+      params: {
+        appId: selectedApp.value.appid
+      }
+    })
+    
+    if (res.code === 200) {
+      ElMessage.success('配置删除成功')
+      // 清空配置表单
+      configForm.value = {
+        id: null,
+        appId: selectedApp.value.appid,
+        contact: '',
+        douyinImId: '',
+        kuaishouClientId: '',
+        kuaishouClientSecret: '',
+        payCardStyle: null,
+        homeCardStyle: null
+      }
+      // 关闭确认对话框
+      deleteDialogVisible.value = false
+    } else {
+      throw new Error(res.message || '删除失败')
+    }
+  } catch (error) {
+    console.error('删除配置失败:', error)
+    ElMessage.error(error.message || '删除配置失败')
+  } finally {
+    loadingConfig.value = false
   }
 }
 

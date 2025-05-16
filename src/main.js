@@ -16,7 +16,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 
 // 设置默认配置
-axios.defaults.baseURL = 'http://localhost:8080'
+axios.defaults.baseURL = `${window.location.protocol}//${window.location.hostname}:8080`
 axios.defaults.timeout = 10000
 
 app.mount('#app') 
