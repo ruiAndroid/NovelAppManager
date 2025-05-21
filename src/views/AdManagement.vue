@@ -159,19 +159,18 @@
                     <template v-if="adConfig?.interstitial">
                       <div class="ad-info-list">
                         <el-empty 
-                          description="暂无配置数据" 
+                          description="暂未配置插屏广告" 
                           :image-size="60"
                         >
                           <template #description>
                             <div class="empty-description">
-                              <p>已创建但暂无具体配置数据</p>
-                              <p class="sub-text">可以通过编辑按钮设置配置信息</p>
+                              <p>暂未配置插屏广告</p>
                             </div>
                           </template>
                         </el-empty>
                       </div>
                     </template>
-                    <el-empty v-else description="未创建插屏广告配置" :image-size="60" />
+                    <el-empty v-else description="暂未配置插屏广告" :image-size="60" />
                   </div>
 
                   <!-- 操作按钮区 -->
@@ -215,19 +214,18 @@
                     <template v-if="adConfig?.native">
                       <div class="ad-info-list">
                         <el-empty 
-                          description="暂无配置数据" 
+                          description="暂未配置信息流广告" 
                           :image-size="60"
                         >
                           <template #description>
                             <div class="empty-description">
-                              <p>已创建但暂无具体配置数据</p>
-                              <p class="sub-text">可以通过编辑按钮设置配置信息</p>
+                              <p>暂未配置信息流广告</p>
                             </div>
                           </template>
                         </el-empty>
                       </div>
                     </template>
-                    <el-empty v-else description="未创建信息流广告配置" :image-size="60" />
+                    <el-empty v-else description="暂未配置信息流广告" :image-size="60" />
                   </div>
 
                   <!-- 操作按钮区 -->
@@ -295,7 +293,18 @@
             <el-switch v-model="adForm.isRewardAdEnabled" />
           </el-form-item>
         </template>
-        <!-- 其他广告类型的表单待补充 -->
+        <!-- 插屏广告表单 -->
+        <template v-if="currentAdType === 'interstitial'">
+          <el-form-item label="广告位ID" prop="adId">
+            <el-input v-model="adForm.adId" placeholder="请输入广告位ID" />
+          </el-form-item>
+        </template>
+        <!-- 信息流广告表单 -->
+        <template v-if="currentAdType === 'native'">
+          <el-form-item label="广告位ID" prop="adId">
+            <el-input v-model="adForm.adId" placeholder="请输入广告位ID" />
+          </el-form-item>
+        </template>
       </el-form>
       <template #footer>
         <span class="dialog-footer">
@@ -328,7 +337,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Edit, Delete, Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
@@ -353,6 +362,9 @@ const submitting = ref(false)
 const deleteDialogVisible = ref(false)
 const deleting = ref(false)
 const deleteAdType = ref('')
+
+// 新增 isEditMode 变量
+const isEditMode = ref(false)
 
 // 过滤后的小程序列表
 const filteredApps = computed(() => {
@@ -448,15 +460,13 @@ const handleRefresh = () => {
 
 // 修改编辑广告配置的方法
 const handleEditAd = (type) => {
-  // 只允许编辑激励广告
   if (type !== 'reward') {
     ElMessage.warning('该类型广告暂不支持编辑')
     return
   }
-
+  isEditMode.value = true
   currentAdType.value = type
   dialogTitle.value = `编辑${getAdTypeName(type)}`
-  
   // 初始化激励广告表单数据
   if (adConfig.value?.reward) {
     adForm.value = {
@@ -465,8 +475,6 @@ const handleEditAd = (type) => {
       isRewardAdEnabled: adConfig.value.reward.isRewardAdEnabled || false
     }
   }
-  
-  // 设置表单验证规则
   adFormRules.value = {
     rewardAdId: [
       { required: true, message: '请输入广告位ID', trigger: 'blur' }
@@ -475,8 +483,6 @@ const handleEditAd = (type) => {
       { required: true, message: '请输入激励次数', trigger: 'blur' }
     ]
   }
-  
-  // 打开对话框
   dialogVisible.value = true
 }
 
@@ -490,10 +496,25 @@ const getAdTypeName = (type) => {
   return names[type] || type
 }
 
-// 修改创建广告配置的方法
+// 修改创建广告配置的方法，所有类型都弹窗确认
 const handleCreateAd = async (type) => {
   if (!selectedApp.value?.appid) {
     ElMessage.warning('请先选择小程序')
+    return
+  }
+
+  try {
+    await ElMessageBox.confirm(
+      `确定要新建${getAdTypeName(type)}配置吗？`,
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+  } catch {
+    // 用户取消
     return
   }
 
@@ -503,32 +524,26 @@ const handleCreateAd = async (type) => {
       const createAppAdRes = await request.post('/api/novel-ad/appAd/create', {
         appid: selectedApp.value.appid
       })
-      
       if (createAppAdRes.code !== 200) {
         throw new Error(createAppAdRes.message || '创建应用广告配置失败')
       }
-      
-      // 保存返回的app_ad数据
       adConfig.value = createAppAdRes.data
     } catch (error) {
-      console.error('创建应用广告配置失败:', error)
       ElMessage.error(error.message || '创建应用广告配置失败')
       return
     }
   }
 
-  // 设置当前广告类型和对话框标题
+  isEditMode.value = false
   currentAdType.value = type
   dialogTitle.value = `新建${getAdTypeName(type)}`
-  
-  // 初始化表单数据
+
   if (type === 'reward') {
     adForm.value = {
       rewardAdId: '',
       rewardCount: 1,
       isRewardAdEnabled: false
     }
-    // 设置表单验证规则
     adFormRules.value = {
       rewardAdId: [
         { required: true, message: '请输入广告位ID', trigger: 'blur' }
@@ -538,61 +553,57 @@ const handleCreateAd = async (type) => {
       ]
     }
   } else {
-    adForm.value = {}
-    adFormRules.value = {}
+    // 插屏广告、信息流广告表单只显示广告位ID
+    adForm.value = {
+      adId: ''
+    }
+    adFormRules.value = {
+      adId: [
+        { required: true, message: '请输入广告位ID', trigger: 'blur' }
+      ]
+    }
   }
-  
-  // 打开对话框
   dialogVisible.value = true
 }
 
-// 修改提交广告配置的方法
+// 修改提交广告配置的方法，所有类型都在这里发起创建请求
 const handleSubmitAd = async () => {
   if (!adFormRef.value) return
-  
+
   await adFormRef.value.validate(async (valid) => {
     if (!valid) return
-    
+
     submitting.value = true
     try {
-      let requestData = {}
-      
+      let submitData = {
+        appAdId: adConfig.value.id,
+        adType: currentAdType.value
+      }
       if (currentAdType.value === 'reward') {
-        // 激励广告需要包含所有字段
-        requestData = {
-          apAdId: adConfig.value.id,  // 使用app_ad的id
-          adType: 'reward',
+        submitData = {
+          ...submitData,
           rewardAdId: adForm.value.rewardAdId,
           rewardCount: adForm.value.rewardCount,
           isRewardAdEnabled: adForm.value.isRewardAdEnabled
         }
       } else {
-        // 其他类型广告只需要基本字段
-        requestData = {
-          apAdId: adConfig.value.id,  // 使用app_ad的id
-          adType: currentAdType.value
+        submitData = {
+          ...submitData,
+          adId: adForm.value.adId
         }
       }
-
-      // 根据是否存在对应类型的配置来判断是新建还是更新
-      const isEdit = adConfig.value?.[currentAdType.value] != null
-      const apiUrl = isEdit 
+      const apiUrl = isEditMode.value
         ? '/api/novel-ad/adConfig/update'
         : '/api/novel-ad/adConfig/create'
-
-      const res = await request.post(apiUrl, requestData)
-      
-      if (res.code === 200) {
-        ElMessage.success(isEdit ? '广告配置更新成功' : '广告配置创建成功')
-        dialogVisible.value = false
-        // 重新获取广告配置
-        fetchAdConfig(selectedApp.value.appid)
-      } else {
-        throw new Error(res.message || (isEdit ? '更新失败' : '创建失败'))
+      const res = await request.post(apiUrl, submitData)
+      if (res.code !== 200) {
+        throw new Error(res.message || `${isEditMode.value ? '更新' : '创建'}${getAdTypeName(currentAdType.value)}配置失败`)
       }
+      ElMessage.success(`${getAdTypeName(currentAdType.value)}配置${isEditMode.value ? '更新' : '创建'}成功`)
+      dialogVisible.value = false
+      fetchAdConfig(selectedApp.value.appid)
     } catch (error) {
-      console.error(isEdit ? '更新广告配置失败:' : '创建广告配置失败:', error)
-      ElMessage.error(error.message || (isEdit ? '更新失败' : '创建失败'))
+      ElMessage.error(error.message || `${isEditMode.value ? '更新' : '创建'}${getAdTypeName(currentAdType.value)}配置失败`)
     } finally {
       submitting.value = false
     }

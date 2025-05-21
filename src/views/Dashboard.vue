@@ -383,16 +383,30 @@ const handleEdit = (app) => {
   dialogVisible.value = true
 }
 
-
-const handleDelete = (app) => {
-  ElMessageBox.confirm(`确定要删除${app.platform}小程序：${app.appName}吗？`, '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    appList.value = appList.value.filter(item => item.id !== app.id)
-    ElMessage.success('删除成功')
-  })
+const handleDelete = async (app) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除${app.platform}小程序：${app.appName}吗？`, '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    loading.value = true
+    const res = await request.get('/api/novel-apps/delete', {
+      params: { appId: app.appid }
+    })
+    if (res.code === 200) {
+      ElMessage.success('删除成功')
+      await fetchAppList()
+    } else {
+      throw new Error(res.message || '删除失败')
+    }
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(error.message || '删除失败')
+    }
+  } finally {
+    loading.value = false
+  }
 }
 
 const handleSave = async () => {

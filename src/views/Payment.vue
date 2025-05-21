@@ -81,7 +81,6 @@
               <!-- 普通支付配置 -->
               <el-card class="payment-type-card" :body-style="{ padding: '0' }">
                 <div class="payment-card-wrapper">
-                  <!-- 支付类型标题区 -->
                   <div class="payment-card-header" :class="{ 'configured': paymentConfig?.normalPay }">
                     <div class="payment-type-info">
                       <el-icon><Money /></el-icon>
@@ -94,7 +93,6 @@
                     </el-tag>
                   </div>
 
-                  <!-- 支付配置内容区 -->
                   <div class="payment-card-content" v-loading="loadingPaymentConfig">
                     <template v-if="paymentConfig?.normalPay">
                       <div class="payment-info-list">
@@ -114,24 +112,23 @@
                         </div>
                       </div>
                     </template>
-                    <el-empty v-else description="暂未配置普通支付" :image-size="60" />
+                    <template v-else>
+                      <el-empty description="暂未配置普通支付" :image-size="60" />
+                      <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                        <el-button type="primary" @click="handleCreatePayment('normalPay')">
+                          <el-icon><Plus /></el-icon>新建配置
+                        </el-button>
+                      </div>
+                    </template>
                   </div>
 
-                  <!-- 操作按钮区 -->
-                  <div class="payment-card-footer">
-                    <template v-if="paymentConfig?.normalPay">
-                      <el-button type="primary" link @click="handleEditPayment('normalPay')">
-                        <el-icon><Edit /></el-icon>编辑
-                      </el-button>
-                      <el-button type="danger" link @click="handleDeletePayment('normalPay')">
-                        <el-icon><Delete /></el-icon>删除
-                      </el-button>
-                    </template>
-                    <template v-else>
-                      <el-button type="primary" @click="handleCreatePayment('normalPay')">
-                        <el-icon><Plus /></el-icon>新建配置
-                      </el-button>
-                    </template>
+                  <div class="payment-card-footer" v-if="paymentConfig?.normalPay">
+                    <el-button type="primary" link @click="handleEditPayment('normalPay')">
+                      <el-icon><Edit /></el-icon>编辑
+                    </el-button>
+                    <el-button type="danger" link @click="handleDeletePayment('normalPay')">
+                      <el-icon><Delete /></el-icon>删除
+                    </el-button>
                   </div>
                 </div>
               </el-card>
@@ -139,7 +136,6 @@
               <!-- 订单支付配置 -->
               <el-card class="payment-type-card" :body-style="{ padding: '0' }">
                 <div class="payment-card-wrapper">
-                  <!-- 支付类型标题区 -->
                   <div class="payment-card-header" :class="{ 'configured': paymentConfig?.orderPay }">
                     <div class="payment-type-info">
                       <el-icon><Goods /></el-icon>
@@ -152,7 +148,6 @@
                     </el-tag>
                   </div>
 
-                  <!-- 支付配置内容区 -->
                   <div class="payment-card-content" v-loading="loadingPaymentConfig">
                     <template v-if="paymentConfig?.orderPay">
                       <div class="payment-info-list">
@@ -172,24 +167,23 @@
                         </div>
                       </div>
                     </template>
-                    <el-empty v-else description="暂未配置通用交易支付" :image-size="60" />
+                    <template v-else>
+                      <el-empty description="暂未配置通用交易支付" :image-size="60" />
+                      <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                        <el-button type="primary" @click="handleCreatePayment('orderPay')">
+                          <el-icon><Plus /></el-icon>新建配置
+                        </el-button>
+                      </div>
+                    </template>
                   </div>
 
-                  <!-- 操作按钮区 -->
-                  <div class="payment-card-footer">
-                    <template v-if="paymentConfig?.orderPay">
-                      <el-button type="primary" link @click="handleEditPayment('orderPay')">
-                        <el-icon><Edit /></el-icon>编辑
-                      </el-button>
-                      <el-button type="danger" link @click="handleDeletePayment('orderPay')">
-                        <el-icon><Delete /></el-icon>删除
-                      </el-button>
-                    </template>
-                    <template v-else>
-                      <el-button type="primary" @click="handleCreatePayment('orderPay')">
-                        <el-icon><Plus /></el-icon>新建配置
-                      </el-button>
-                    </template>
+                  <div class="payment-card-footer" v-if="paymentConfig?.orderPay">
+                    <el-button type="primary" link @click="handleEditPayment('orderPay')">
+                      <el-icon><Edit /></el-icon>编辑
+                    </el-button>
+                    <el-button type="danger" link @click="handleDeletePayment('orderPay')">
+                      <el-icon><Delete /></el-icon>删除
+                    </el-button>
                   </div>
                 </div>
               </el-card>
@@ -197,7 +191,6 @@
               <!-- 续费支付配置 -->
               <el-card class="payment-type-card" :body-style="{ padding: '0' }">
                 <div class="payment-card-wrapper">
-                  <!-- 支付类型标题区 -->
                   <div class="payment-card-header" :class="{ 'configured': paymentConfig?.renewPay }">
                     <div class="payment-type-info">
                       <el-icon><Calendar /></el-icon>
@@ -210,7 +203,6 @@
                     </el-tag>
                   </div>
 
-                  <!-- 支付配置内容区 -->
                   <div class="payment-card-content" v-loading="loadingPaymentConfig">
                     <template v-if="paymentConfig?.renewPay">
                       <div class="payment-info-list">
@@ -230,85 +222,83 @@
                         </div>
                       </div>
                     </template>
-                    <el-empty v-else description="暂未配置连包支付" :image-size="60" />
+                    <template v-else>
+                      <el-empty description="暂未配置连包支付" :image-size="60" />
+                      <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                        <el-button type="primary" @click="handleCreatePayment('renewPay')">
+                          <el-icon><Plus /></el-icon>新建配置
+                        </el-button>
+                      </div>
+                    </template>
                   </div>
 
-                  <!-- 操作按钮区 -->
-                  <div class="payment-card-footer">
-                    <template v-if="paymentConfig?.renewPay">
-                      <el-button type="primary" link @click="handleEditPayment('renewPay')">
-                        <el-icon><Edit /></el-icon>编辑
-                      </el-button>
-                      <el-button type="danger" link @click="handleDeletePayment('renewPay')">
-                        <el-icon><Delete /></el-icon>删除
-                      </el-button>
-                    </template>
-                    <template v-else>
-                      <el-button type="primary" @click="handleCreatePayment('renewPay')">
-                        <el-icon><Plus /></el-icon>新建配置
-                      </el-button>
-                    </template>
+                  <div class="payment-card-footer" v-if="paymentConfig?.renewPay">
+                    <el-button type="primary" link @click="handleEditPayment('renewPay')">
+                      <el-icon><Edit /></el-icon>编辑
+                    </el-button>
+                    <el-button type="danger" link @click="handleDeletePayment('renewPay')">
+                      <el-icon><Delete /></el-icon>删除
+                    </el-button>
                   </div>
                 </div>
               </el-card>
 
               <!-- 抖赞支付配置 -->
-              <el-card class="payment-type-card" :body-style="{ padding: '0' }">
-                <div class="payment-card-wrapper">
-                  <!-- 支付类型标题区 -->
-                  <div class="payment-card-header" :class="{ 'configured': paymentConfig?.douzuanPay }">
-                    <div class="payment-type-info">
-                      <el-icon><Star /></el-icon>
-                      <div class="payment-type-title">
-                        <h4>{{ getPaymentTypeName('douzuanPay') }}</h4>
+              <template v-if="selectedApp && selectedApp.platform === '抖音'">
+                <el-card class="payment-type-card" :body-style="{ padding: '0' }">
+                  <div class="payment-card-wrapper">
+                    <div class="payment-card-header" :class="{ 'configured': paymentConfig?.douzuanPay }">
+                      <div class="payment-type-info">
+                        <el-icon><Star /></el-icon>
+                        <div class="payment-type-title">
+                          <h4>{{ getPaymentTypeName('douzuanPay') }}</h4>
+                        </div>
                       </div>
+                      <el-tag size="small" :type="paymentConfig?.douzuanPay ? 'success' : 'info'" effect="plain">
+                        {{ paymentConfig?.douzuanPay ? '已配置' : '未配置' }}
+                      </el-tag>
                     </div>
-                    <el-tag size="small" :type="paymentConfig?.douzuanPay ? 'success' : 'info'" effect="plain">
-                      {{ paymentConfig?.douzuanPay ? '已配置' : '未配置' }}
-                    </el-tag>
-                  </div>
 
-                  <!-- 支付配置内容区 -->
-                  <div class="payment-card-content" v-loading="loadingPaymentConfig">
-                    <template v-if="paymentConfig?.douzuanPay">
-                      <div class="payment-info-list">
-                        <div class="payment-info-item">
-                          <span class="label">状态</span>
-                          <el-tag size="small" :type="paymentConfig.douzuanPay.enabled ? 'success' : 'danger'" effect="light">
-                            {{ paymentConfig.douzuanPay.enabled ? '已启用' : '未启用' }}
-                          </el-tag>
+                    <div class="payment-card-content" v-loading="loadingPaymentConfig">
+                      <template v-if="paymentConfig?.douzuanPay">
+                        <div class="payment-info-list">
+                          <div class="payment-info-item">
+                            <span class="label">状态</span>
+                            <el-tag size="small" :type="paymentConfig.douzuanPay.enabled ? 'success' : 'danger'" effect="light">
+                              {{ paymentConfig.douzuanPay.enabled ? '已启用' : '未启用' }}
+                            </el-tag>
+                          </div>
+                          <div class="payment-info-item">
+                            <span class="label">网关 (Android)</span>
+                            <span class="value">{{ paymentConfig.douzuanPay.gatewayAndroid }}</span>
+                          </div>
+                          <div class="payment-info-item">
+                            <span class="label">网关 (iOS)</span>
+                            <span class="value">{{ paymentConfig.douzuanPay.gatewayIos }}</span>
+                          </div>
                         </div>
-                        <div class="payment-info-item">
-                          <span class="label">网关 (Android)</span>
-                          <span class="value">{{ paymentConfig.douzuanPay.gatewayAndroid }}</span>
+                      </template>
+                      <template v-else>
+                        <el-empty description="暂未配置抖钻支付" :image-size="60" />
+                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                          <el-button type="primary" @click="handleCreatePayment('douzuanPay')">
+                            <el-icon><Plus /></el-icon>新建配置
+                          </el-button>
                         </div>
-                        <div class="payment-info-item">
-                          <span class="label">网关 (iOS)</span>
-                          <span class="value">{{ paymentConfig.douzuanPay.gatewayIos }}</span>
-                        </div>
-                      </div>
-                    </template>
-                    <el-empty v-else description="暂未配置抖钻支付" :image-size="60" />
-                  </div>
+                      </template>
+                    </div>
 
-                  <!-- 操作按钮区 -->
-                  <div class="payment-card-footer">
-                    <template v-if="paymentConfig?.douzuanPay">
+                    <div class="payment-card-footer" v-if="paymentConfig?.douzuanPay">
                       <el-button type="primary" link @click="handleEditPayment('douzuanPay')">
                         <el-icon><Edit /></el-icon>编辑
                       </el-button>
                       <el-button type="danger" link @click="handleDeletePayment('douzuanPay')">
                         <el-icon><Delete /></el-icon>删除
                       </el-button>
-                    </template>
-                    <template v-else>
-                      <el-button type="primary" @click="handleCreatePayment('douzuanPay')">
-                        <el-icon><Plus /></el-icon>新建配置
-                      </el-button>
-                    </template>
+                    </div>
                   </div>
-                </div>
-              </el-card>
+                </el-card>
+              </template>
             </div>
           </template>
           <template v-else>
@@ -683,6 +673,7 @@ onMounted(() => {
   border: none;
   border-radius: 8px;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
+  /* 恢复为无固定高度和无flex布局 */
 }
 
 .payment-type-card:hover {
@@ -691,9 +682,22 @@ onMounted(() => {
 }
 
 .payment-card-wrapper {
-  height: 100%;
+  /* 恢复为无特殊布局 */
+}
+
+.payment-card-content {
+  padding: 20px;
+  min-height: 160px;
+  /* 恢复为无flex布局 */
+}
+
+.payment-card-footer {
+  padding: 16px 20px;
+  border-top: 1px solid #ebeef5;
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+  /* 恢复为无固定高度 */
 }
 
 .payment-card-header {
@@ -737,12 +741,6 @@ onMounted(() => {
   margin-top: 4px;
 }
 
-.payment-card-content {
-  flex: 1;
-  padding: 20px;
-  min-height: 160px;
-}
-
 .payment-info-list {
   display: flex;
   flex-direction: column;
@@ -763,13 +761,5 @@ onMounted(() => {
 .payment-info-item .value {
   color: #303133;
   font-weight: 500;
-}
-
-.payment-card-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #ebeef5;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
 }
 </style> 
