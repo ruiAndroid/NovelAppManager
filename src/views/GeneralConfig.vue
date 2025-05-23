@@ -139,6 +139,8 @@
                   <el-form-item>
                     <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
                     <el-button type="danger" @click="handleDeleteConfirm" v-if="configForm.id">删除配置</el-button>
+                    <el-button @click="handleCopyGeneralConfig">复制配置</el-button>
+                    <el-button @click="handlePasteGeneralConfig">粘贴配置</el-button>
                   </el-form-item>
                 </el-form>
               </template>
@@ -435,6 +437,29 @@ const handleDeleteConfig = async () => {
     ElMessage.error(error.message || '删除配置失败')
   } finally {
     loadingConfig.value = false
+  }
+}
+
+const handleCopyGeneralConfig = () => {
+  try {
+    localStorage.setItem('generalConfigCopy', JSON.stringify(configForm.value))
+    ElMessage.success('通用配置已复制')
+  } catch (e) {
+    ElMessage.error('复制失败')
+  }
+}
+
+const handlePasteGeneralConfig = () => {
+  try {
+    const data = localStorage.getItem('generalConfigCopy')
+    if (data) {
+      configForm.value = JSON.parse(data)
+      ElMessage.success('通用配置已粘贴')
+    } else {
+      ElMessage.warning('没有可粘贴的配置')
+    }
+  } catch (e) {
+    ElMessage.error('粘贴失败')
   }
 }
 

@@ -90,7 +90,19 @@
               {{ selectedPlatform }}
             </el-tag>
           </h3>
-          <el-button type="primary" @click="handleAddApp">添加小程序</el-button>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <el-input
+              v-model="searchQuery"
+              placeholder="搜索小程序"
+              style="width: 220px;"
+              clearable
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+            <el-button type="primary" @click="handleAddApp">添加小程序</el-button>
+          </div>
         </div>
       </template>
 
@@ -239,6 +251,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search } from '@element-plus/icons-vue'
 import request from '../utils/request'
 
 // 平台映射
@@ -265,6 +278,7 @@ const statistics = ref({
 const appList = ref([])
 const selectedPlatform = ref('')
 const loading = ref(false)
+const searchQuery = ref('')
 
 // 获取小程序列表
 const fetchAppList = async () => {
@@ -330,8 +344,18 @@ const appForm = ref({
 
 // 根据选中平台过滤小程序列表
 const filteredAppList = computed(() => {
-  if (!selectedPlatform.value) return appList.value
-  return appList.value.filter(app => app.platform === selectedPlatform.value)
+  let list = appList.value
+  if (selectedPlatform.value) {
+    list = list.filter(app => app.platform === selectedPlatform.value)
+  }
+  if (!searchQuery.value) return list
+  const q = searchQuery.value.toLowerCase()
+  return list.filter(app =>
+    (app.appName && app.appName.toLowerCase().includes(q)) ||
+    (app.appid && app.appid.toLowerCase().includes(q)) ||
+    (app.appCode && app.appCode.toLowerCase().includes(q)) ||
+    (app.product && app.product.toLowerCase().includes(q))
+  )
 })
 
 const getPlatformType = (platform) => {

@@ -15,7 +15,7 @@
         
         <el-menu-item index="/config">
           <el-icon><Setting /></el-icon>
-          <span>微距</span>
+          <span>微距(for测试同学)</span>
         </el-menu-item>
         
         <el-menu-item index="/ads">
@@ -44,6 +44,7 @@
       <el-header>
         <div class="header-content">
           <h2>小说小程序管理系统</h2>
+          <!-- <h4>让需求流动更简单</h4> -->
           <el-dropdown>
             <span class="admin-info">
               管理员 <el-icon><ArrowDown /></el-icon>

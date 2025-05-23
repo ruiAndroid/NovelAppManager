@@ -114,6 +114,8 @@
               <div class="config-actions">
                 <el-button type="primary" @click="handleSaveBusinessType">保存配置</el-button>
                 <el-button type="danger" @click="handleDeleteConfirm">删除配置</el-button>
+                <el-button @click="handleCopyBusinessTypeConfig">复制配置</el-button>
+                <el-button @click="handlePasteBusinessTypeConfig">粘贴配置</el-button>
               </div>
             </div>
           </el-tab-pane>
@@ -154,6 +156,8 @@
               <div class="config-actions">
                 <el-button type="primary" @click="handleSavePublicSwitch">保存配置</el-button>
                 <el-button type="danger" @click="handleDeleteBannerConfirm">删除配置</el-button>
+                <el-button @click="handleCopyPublicSwitchConfig">复制配置</el-button>
+                <el-button @click="handlePastePublicSwitchConfig">粘贴配置</el-button>
               </div>
             </div>
           </el-tab-pane>
@@ -370,7 +374,7 @@ const fetchPublicSwitchConfigs = async (appId) => {
 // 添加新的转换函数处理banner配置数据
 const convertToBannerConfigItems = (data) => {
   const configItems = []
-  const excludeFields = ['adId', 'bannerId', 'createTime', 'updateTime']
+  const excludeFields = ['adId', 'bannerId', 'createTime', 'updateTime','create_time','update_time']
   const descriptionMap = {
     'material': '素材',
     'time': '时间',
@@ -465,6 +469,7 @@ const handleCreateBusinessType = () => {
 
 // 修改创建banner配置的函数
 const handleCreatePublicSwitch = () => {
+  console.log('selectedApp.value',selectedApp.value)
   if (!selectedApp.value || !selectedApp.value.bannerId) {
     ElMessage.warning('请先选择一个有效的小程序')
     return
@@ -844,6 +849,50 @@ const handleDeleteBanner = async () => {
     ElMessage.error(error.message || '删除banner配置失败')
   } finally {
     loadingConfig.value = false
+  }
+}
+
+// 在<script setup>中添加如下方法：
+const handleCopyBusinessTypeConfig = () => {
+  try {
+    localStorage.setItem('businessTypeConfigCopy', JSON.stringify(businessTypeConfigs.value))
+    ElMessage.success('business_type配置已复制')
+  } catch (e) {
+    ElMessage.error('复制失败')
+  }
+}
+const handlePasteBusinessTypeConfig = () => {
+  try {
+    const data = localStorage.getItem('businessTypeConfigCopy')
+    if (data) {
+      businessTypeConfigs.value = JSON.parse(data)
+      ElMessage.success('business_type配置已粘贴')
+    } else {
+      ElMessage.warning('没有可粘贴的配置')
+    }
+  } catch (e) {
+    ElMessage.error('粘贴失败')
+  }
+}
+const handleCopyPublicSwitchConfig = () => {
+  try {
+    localStorage.setItem('publicSwitchConfigCopy', JSON.stringify(publicSwitchConfigs.value))
+    ElMessage.success('public_switch配置已复制')
+  } catch (e) {
+    ElMessage.error('复制失败')
+  }
+}
+const handlePastePublicSwitchConfig = () => {
+  try {
+    const data = localStorage.getItem('publicSwitchConfigCopy')
+    if (data) {
+      publicSwitchConfigs.value = JSON.parse(data)
+      ElMessage.success('public_switch配置已粘贴')
+    } else {
+      ElMessage.warning('没有可粘贴的配置')
+    }
+  } catch (e) {
+    ElMessage.error('粘贴失败')
   }
 }
 
