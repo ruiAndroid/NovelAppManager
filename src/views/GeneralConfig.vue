@@ -3,8 +3,8 @@
     <div class="layout-container">
       <!-- 左侧小程序列表 -->
       <el-card class="app-list-card">
-        <template #header>
-          <div class="header">
+      <template #header>
+        <div class="header">
             <h3>小程序列表</h3>
             <div>
               <el-input
@@ -18,8 +18,8 @@
               </el-input>
               <el-button type="primary" @click="handleRefresh">刷新数据</el-button>
             </div>
-          </div>
-        </template>
+        </div>
+      </template>
 
         <div v-loading="loadingApps">
           <template v-if="filteredApps.length === 0">
@@ -96,16 +96,16 @@
                 <el-form :model="configForm" label-width="160px">
                   <el-form-item label="配置ID">
                     <span class="readonly-value">{{ configForm.id }}</span>
-                  </el-form-item>
+            </el-form-item>
                   <el-form-item label="AppID">
                     <span class="readonly-value">{{ configForm.appId }}</span>
-                  </el-form-item>
-
+            </el-form-item>
+            
                   <!-- Conditionally show Douyin field -->
                   <template v-if="selectedApp.platform === '抖音'">
                     <el-form-item label="抖音IM ID">
                       <el-input v-model="configForm.douyinImId" placeholder="请输入抖音IM ID" />
-                    </el-form-item>
+            </el-form-item>
                   </template>
 
                   <!-- Conditionally show Kuaishou fields -->
@@ -115,13 +115,13 @@
                     </el-form-item>
                     <el-form-item label="快手Client Secret">
                       <el-input v-model="configForm.kuaishouClientSecret" placeholder="请输入快手Client Secret" show-password />
-                    </el-form-item>
+            </el-form-item>
                   </template>
 
                   <el-form-item label="客服URL">
                     <el-input v-model="configForm.contact" placeholder="请输入客服URL" />
-                  </el-form-item>
-
+            </el-form-item>
+            
                   <el-form-item label="支付卡片样式">
                     <el-select v-model="configForm.payCardStyle" placeholder="请选择支付卡片样式">
                       <el-option :value="1" label="样式1" />
@@ -134,15 +134,15 @@
                     <el-select v-model="configForm.homeCardStyle" placeholder="请选择首页卡片样式">
                       <el-option :value="1" label="样式1" />
                     </el-select>
-                  </el-form-item>
-
+            </el-form-item>
+            
                   <el-form-item>
                     <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
                     <el-button type="danger" @click="handleDeleteConfirm" v-if="configForm.id">删除配置</el-button>
                     <el-button @click="handleCopyGeneralConfig">复制配置</el-button>
                     <el-button @click="handlePasteGeneralConfig">粘贴配置</el-button>
-                  </el-form-item>
-                </el-form>
+            </el-form-item>
+          </el-form>
               </template>
             </div>
           </template>
@@ -156,8 +156,8 @@
               </template>
             </el-empty>
           </template>
-        </div>
-      </el-card>
+      </div>
+    </el-card>
     </div>
 
     <!-- 删除确认对话框 -->
@@ -182,6 +182,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { pinyin } from 'pinyin-pro'
 
 // 状态变量
 const searchQuery = ref('')
@@ -205,10 +206,42 @@ const configForm = ref({
 // 过滤小程序列表
 const filteredApps = computed(() => {
   if (!searchQuery.value) return apps.value
-  return apps.value.filter(app => 
-    app.appName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    app.appid.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  const query = searchQuery.value.toLowerCase()
+  const isSingleCharQuery = query.length === 1;
+  return apps.value.filter(app => {
+    const name = app.appName || ''
+    // 获取全拼和首字母
+    const namePinyinFirst = pinyin(name, { 
+      pattern: 'first', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    const namePinyinFull = pinyin(name, { 
+      pattern: 'pinyin', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    
+    // 检查原始名称
+    if (name.toLowerCase().includes(query)) return true
+    
+    // 检查拼音首字母
+    if (isSingleCharQuery) {
+      // 对于单字符查询，严格匹配首字母
+      if (namePinyinFirst.length > 0 && namePinyinFirst[0] === query) return true;
+    } else {
+      // 对于多字符查询，检查是否以首字母开头
+      if (namePinyinFirst.startsWith(query)) return true
+    }
+    
+    // 检查全拼
+    if (namePinyinFull.includes(query)) return true
+    
+    // 检查其他字段
+    return (app.appid && app.appid.toLowerCase().includes(query))
+  })
 })
 
 // 获取小程序列表

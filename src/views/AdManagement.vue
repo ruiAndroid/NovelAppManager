@@ -340,6 +340,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Edit, Delete, Plus } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { pinyin } from 'pinyin-pro'
 
 // 小程序列表相关
 const apps = ref([])
@@ -370,10 +371,41 @@ const isEditMode = ref(false)
 const filteredApps = computed(() => {
   if (!searchQuery.value) return apps.value
   const query = searchQuery.value.toLowerCase()
-  return apps.value.filter(app => 
-    app.appName.toLowerCase().includes(query) || 
-    app.appid.toLowerCase().includes(query)
-  )
+  const isSingleCharQuery = query.length === 1;
+  return apps.value.filter(app => {
+    const name = app.appName || ''
+    // 获取全拼和首字母
+    const namePinyinFirst = pinyin(name, { 
+      pattern: 'first', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    const namePinyinFull = pinyin(name, { 
+      pattern: 'pinyin', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    
+    // 检查原始名称
+    if (name.toLowerCase().includes(query)) return true
+    
+    // 检查拼音首字母
+    if (isSingleCharQuery) {
+      // 对于单字符查询，严格匹配首字母
+      if (namePinyinFirst.length > 0 && namePinyinFirst[0] === query) return true;
+    } else {
+      // 对于多字符查询，检查是否以首字母开头
+      if (namePinyinFirst.startsWith(query)) return true
+    }
+    
+    // 检查全拼
+    if (namePinyinFull.includes(query)) return true
+    
+    // 检查其他字段
+    return (app.appid && app.appid.toLowerCase().includes(query))
+  })
 })
 
 // 获取小程序列表

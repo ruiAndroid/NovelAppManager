@@ -299,6 +299,63 @@
                   </div>
                 </el-card>
               </template>
+
+              <!-- 微信虚拟支付配置 -->
+              <template v-if="selectedApp && selectedApp.platform === '微信'">
+                <el-card class="payment-type-card" :body-style="{ padding: '0' }">
+                  <div class="payment-card-wrapper">
+                    <div class="payment-card-header" :class="{ 'configured': paymentConfig?.wxVirtualPay }">
+                      <div class="payment-type-info">
+                        <el-icon><Wallet /></el-icon>
+                        <div class="payment-type-title">
+                          <h4>{{ getPaymentTypeName('wxVirtualPay') }}</h4>
+                        </div>
+                      </div>
+                      <el-tag size="small" :type="paymentConfig?.wxVirtualPay ? 'success' : 'info'" effect="plain">
+                        {{ paymentConfig?.wxVirtualPay ? '已配置' : '未配置' }}
+                      </el-tag>
+                    </div>
+
+                    <div class="payment-card-content" v-loading="loadingPaymentConfig">
+                      <template v-if="paymentConfig?.wxVirtualPay">
+                        <div class="payment-info-list">
+                          <div class="payment-info-item">
+                            <span class="label">状态</span>
+                            <el-tag size="small" :type="paymentConfig.wxVirtualPay.enabled ? 'success' : 'danger'" effect="light">
+                              {{ paymentConfig.wxVirtualPay.enabled ? '已启用' : '未启用' }}
+                            </el-tag>
+                          </div>
+                          <div class="payment-info-item">
+                            <span class="label">网关 (Android)</span>
+                            <span class="value">{{ paymentConfig.wxVirtualPay.gatewayAndroid }}</span>
+                          </div>
+                          <div class="payment-info-item">
+                            <span class="label">网关 (iOS)</span>
+                            <span class="value">{{ paymentConfig.wxVirtualPay.gatewayIos }}</span>
+                          </div>
+                        </div>
+                      </template>
+                      <template v-else>
+                        <el-empty description="暂未配置微信虚拟支付" :image-size="60" />
+                        <div style="display: flex; justify-content: flex-end; margin-top: 16px;">
+                          <el-button type="primary" @click="handleCreatePayment('wxVirtualPay')">
+                            <el-icon><Plus /></el-icon>新建配置
+                          </el-button>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div class="payment-card-footer" v-if="paymentConfig?.wxVirtualPay">
+                      <el-button type="primary" link @click="handleEditPayment('wxVirtualPay')">
+                        <el-icon><Edit /></el-icon>编辑
+                      </el-button>
+                      <el-button type="danger" link @click="handleDeletePayment('wxVirtualPay')">
+                        <el-icon><Delete /></el-icon>删除
+                      </el-button>
+                    </div>
+                  </div>
+                </el-card>
+              </template>
             </div>
           </template>
           <template v-else>
@@ -352,8 +409,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Refresh, Money, Goods, Calendar, Star, Edit, Delete, Plus } from '@element-plus/icons-vue'
+import { Search, Refresh, Money, Goods, Calendar, Star, Edit, Delete, Plus, Wallet } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { pinyin } from 'pinyin-pro'
 
 const searchQuery = ref('')
 const loadingApps = ref(false)
@@ -375,10 +433,42 @@ const currentPaymentType = ref('')
 // 过滤小程序列表
 const filteredApps = computed(() => {
   if (!searchQuery.value) return apps.value
-  return apps.value.filter(app => 
-    app.appName.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    app.appid.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+  const query = searchQuery.value.toLowerCase()
+  const isSingleCharQuery = query.length === 1;
+  return apps.value.filter(app => {
+    const name = app.appName || ''
+    // 获取全拼和首字母
+    const namePinyinFirst = pinyin(name, { 
+      pattern: 'first', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    const namePinyinFull = pinyin(name, { 
+      pattern: 'pinyin', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    
+    // 检查原始名称
+    if (name.toLowerCase().includes(query)) return true
+    
+    // 检查拼音首字母
+    if (isSingleCharQuery) {
+      // 对于单字符查询，严格匹配首字母
+      if (namePinyinFirst.length > 0 && namePinyinFirst[0] === query) return true;
+    } else {
+      // 对于多字符查询，检查是否以首字母开头
+      if (namePinyinFirst.startsWith(query)) return true
+    }
+    
+    // 检查全拼
+    if (namePinyinFull.includes(query)) return true
+    
+    // 检查其他字段
+    return (app.appid && app.appid.toLowerCase().includes(query))
+  })
 })
 
 // 获取小程序列表
@@ -560,7 +650,8 @@ const getPaymentTypeName = (type) => {
     normalPay: '普通支付',
     orderPay: '通用交易支付',
     renewPay: '连包支付',
-    douzuanPay: '抖钻支付'
+    douzuanPay: '抖钻支付',
+    wxVirtualPay: '微信虚拟支付'
   }
   return names[type] || type
 }

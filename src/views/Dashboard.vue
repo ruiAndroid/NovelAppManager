@@ -101,7 +101,7 @@
                 <el-icon><Search /></el-icon>
               </template>
             </el-input>
-            <el-button type="primary" @click="handleAddApp">添加小程序</el-button>
+            <el-button type="primary" @click="handleAddApp">快速创建小程序</el-button>
           </div>
         </div>
       </template>
@@ -253,6 +253,7 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import request from '../utils/request'
+import { pinyin } from 'pinyin-pro'
 
 // 平台映射
 const platformMap = {
@@ -350,12 +351,47 @@ const filteredAppList = computed(() => {
   }
   if (!searchQuery.value) return list
   const q = searchQuery.value.toLowerCase()
-  return list.filter(app =>
-    (app.appName && app.appName.toLowerCase().includes(q)) ||
-    (app.appid && app.appid.toLowerCase().includes(q)) ||
-    (app.appCode && app.appCode.toLowerCase().includes(q)) ||
-    (app.product && app.product.toLowerCase().includes(q))
-  )
+  const isSingleCharQuery = q.length === 1;
+  return list.filter(app => {
+    const name = app.appName || ''
+    // 获取全拼和首字母
+    const namePinyinFirst = pinyin(name, { 
+      pattern: 'first', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    const namePinyinFull = pinyin(name, { 
+      pattern: 'pinyin', 
+      type: 'array',
+      toneType: 'none',
+      nonZh: 'consecutive'
+    }).join('').toLowerCase()
+    
+    // 检查原始名称
+    if (name.toLowerCase().includes(q)) return true
+    
+    // 检查拼音首字母
+    if (isSingleCharQuery) {
+      // 对于单字符查询，严格匹配首字母
+      if (namePinyinFirst.length > 0 && namePinyinFirst[0] === q) return true;
+    } else {
+      // 对于多字符查询，检查是否以首字母开头
+      if (namePinyinFirst.startsWith(q)) return true
+    }
+    
+    // 检查全拼
+    if (namePinyinFull.includes(q)) return true
+    
+    // 检查其他字段
+    return (
+      (app.appid && app.appid.toLowerCase().includes(q)) ||
+      (app.appCode && app.appCode.toLowerCase().includes(q)) ||
+      (app.product && app.product.toLowerCase().includes(q)) ||
+      (app.customer && app.customer.toLowerCase().includes(q)) ||
+      (app.cl && app.cl.toLowerCase().includes(q))
+    )
+  })
 })
 
 const getPlatformType = (platform) => {
