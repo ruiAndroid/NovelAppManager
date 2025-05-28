@@ -142,14 +142,18 @@
             </div>
             <div class="build-actions">
               <el-button @click="currentStep = 1">上一步</el-button>
-              <el-button type="primary" @click="handleStartBuild" :loading="building">开始构建</el-button>
+              <el-button 
+                type="primary" 
+                @click="handleStartBuild" 
+                :loading="building" 
+                :disabled="taskId !== null">
+                {{ taskId === null ? '开始构建' : '构建中...' }}
+               </el-button>
             </div>
-            
-
           </div>
 
-          <!-- 日志区：步骤2和3都显示 -->
-          <el-card class="log-card" v-if="currentStep === 3">
+          <!-- 日志区：步骤3 and 4 show -->
+          <el-card class="log-card" v-if="currentStep === 3 || currentStep === 4">
             <template #header>
               <span>构建日志</span>
             </template>
@@ -157,6 +161,15 @@
               <pre v-for="(log, idx) in buildLogs" :key="idx" class="log-line">{{ log }}</pre>
             </div>
           </el-card>
+
+          <!-- Stop button moved outside the log card -->
+          <div class="build-actions" v-if="currentStep === 3 && taskId !== null && building" style="margin-top: 20px;"> <!-- Show only when building in step 3 -->
+                 <el-button 
+                 type="danger"
+                 @click="handleStopBuild">
+                 停止构建任务
+              </el-button>
+            </div>
 
           <!-- 步骤4：构建完成 -->
           <div v-if="currentStep === 4" class="step-panel">
@@ -193,6 +206,7 @@ const searchQuery = ref('')
 const apps = ref([])
 const selectedApp = ref(null)
 const building = ref(false)
+const taskId = ref(null)
 
 // 构建配置
 const buildConfig = ref({
@@ -215,18 +229,18 @@ const platformMap = {
   '百度': 'bd'
 }
 
-const connectLogSocket = () => {
+const connectLogSocket = (taskIdToSubscribe) => {
   if (stompClient.value) {
     try { stompClient.value.disconnect() } catch {}
     stompClient.value = null
   }
-  const socket = new SockJS('http://localhost:8080/ws')
+  const socket = new SockJS(`${window.location.protocol}//${window.location.hostname}:8080/ws`)
   const client = Stomp.over(socket)
   client.heartbeat.outgoing = 0
   client.heartbeat.incoming = 0
   client.debug = () => {}
   client.connect({}, () => {
-    client.subscribe('/topic/build-logs', (message) => {
+    client.subscribe(`/topic/build-logs/${taskIdToSubscribe}`, (message) => {
       if (message.body) {
         buildLogs.value.push(message.body)
         nextTick(() => {
@@ -239,7 +253,16 @@ const connectLogSocket = () => {
           setTimeout(() => {
             if (stompClient.value) stompClient.value.disconnect()
             stompClient.value = null
-            currentStep.value = 4 // 跳到"构建完成"步骤
+            currentStep.value = 4
+            building.value = false
+            taskId.value = null
+          }, 1000)
+        } else if (message.body.includes('BUILD_FAILED') || message.body.includes('构建失败')) {
+          setTimeout(() => {
+            if (stompClient.value) stompClient.value.disconnect()
+            stompClient.value = null
+            building.value = false
+            taskId.value = null
           }, 1000)
         }
       }
@@ -250,6 +273,9 @@ const connectLogSocket = () => {
 
 onBeforeUnmount(() => {
   if (stompClient.value) stompClient.value.disconnect()
+  if (taskId.value) {
+    handleStopBuild()
+  }
 })
 
 // 获取小程序列表
@@ -390,33 +416,68 @@ const nextStep = async () => {
 }
 
 const handleStartBuild = async () => {
-  currentStep.value = 3 // 立即切换到日志区
-  await nextTick() // 确保UI刷新
-  startBuild()
-}
-
-// 开始构建
-const startBuild = async () => {
   if (!selectedApp.value) {
-    ElMessage.error('请先选择小程序')
-    return
+    ElMessage.error('请先选择小程序');
+    return;
   }
-  buildLogs.value = []
-  connectLogSocket()
-  building.value = true
+
+  buildLogs.value = [];
+  building.value = true;
+  taskId.value = null; // Clear previous task ID
+
   try {
-    await request.post(
-      `http://localhost:8080/api/novel-build/build?cmd="${buildCmd.value || 'npm run dev:tt-yuedong'}"`
-    )
-    ElMessage.success('构建任务已启动，请关注实时日志')
+    const res = await request.post(
+      `/api/novel-build/build?cmd="${buildCmd.value}"`
+    );
+
+    if (res.code === 200 && res.data) {
+      taskId.value = res.data; 
+      currentStep.value = 3;
+      await nextTick(); 
+      connectLogSocket(taskId.value); 
+      ElMessage.success('构建任务已启动，任务ID: ' + taskId.value);
+    } else if (res.code === 200 && res.message) {
+       ElMessage.info('构建任务已启动，等待任务ID...');
+        building.value = false; 
+    }
+     else {
+      ElMessage.error('启动构建失败: ' + (res.message || '未知错误'));
+      building.value = false;
+    }
+
   } catch (error) {
-    ElMessage.error('启动构建失败: ' + (error?.message || ''))
-    if (stompClient.value) stompClient.value.disconnect()
-    stompClient.value = null
-  } finally {
-    building.value = false
+    ElMessage.error('启动构建失败: ' + (error?.message || ''));
+    building.value = false;
   }
-}
+};
+
+const handleStopBuild = async () => {
+  if (!taskId.value) return;
+
+  try {
+    const res = await request.get(
+      '/api/novel-build/stop',{
+        params:{
+          taskId: taskId.value
+        } 
+      }
+    );
+
+    if (res.code === 200) {
+      ElMessage.success(`任务 ${taskId.value} 已停止`);
+      if (stompClient.value) stompClient.value.disconnect();
+      stompClient.value = null;
+      building.value = false;
+      taskId.value = null;
+      currentStep.value = 1;
+      await nextTick(); 
+    } else {
+      ElMessage.error('停止任务失败: ' + (res.message || '未知错误'));
+    }
+  } catch (error) {
+    ElMessage.error('停止任务失败: ' + (error?.message || ''));
+  }
+};
 
 // 返回上一页
 const goBack = () => {
@@ -509,22 +570,26 @@ fetchApps()
 
 .log-card {
   margin-top: 24px;
-  max-height: 300px;
-  overflow-y: auto;
+  margin-bottom: 24px;
+  max-height: 350px;
 }
 .log-content {
   background: #111;
-  color: #0f0;
+  color: rgb(211, 218, 211);
   font-family: 'Fira Mono', 'Consolas', monospace;
   font-size: 13px;
-  padding: 12px;
   border-radius: 4px;
   min-height: 120px;
-  max-height: 220px;
+  max-height: 250px;
   overflow-y: auto;
 }
 .log-line {
   margin: 0;
   white-space: pre-wrap;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+
 }
 </style> 

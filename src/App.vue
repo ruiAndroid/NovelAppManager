@@ -5,8 +5,8 @@
         :router="true"
         default-active="/apps"
         class="el-menu-vertical"
-        background-color="#304156"
-        text-color="#fff"
+        background-color="#eef1f3"
+        text-color="#333"
       >
         <el-menu-item index="/apps">
           <el-icon><Platform /></el-icon>
@@ -76,7 +76,7 @@ import { Platform, Setting, Picture, Money, Tools, ArrowDown, Monitor } from '@e
 }
 
 .el-aside {
-  background-color: #304156;
+  background-color: #eef1f3;
 }
 
 .el-menu {
@@ -105,5 +105,19 @@ import { Platform, Setting, Picture, Money, Tools, ArrowDown, Monitor } from '@e
 
 .el-menu-vertical {
   height: 100%;
+}
+
+.el-menu-vertical .el-menu-item {
+  color: #333; /* Default text color */
+}
+
+.el-menu-vertical .el-menu-item:hover {
+  background-color: #e0e3e6; /* Subtle hover effect */
+}
+
+.el-menu-vertical .el-menu-item.is-active {
+  background-color: #d3dce6; /* Active background */
+  color: #409eff; /* Active text color */
+  border-left: 3px solid #409eff; /* Active indicator */
 }
 </style> 
