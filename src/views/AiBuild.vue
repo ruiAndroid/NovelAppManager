@@ -18,7 +18,7 @@
 
       <div class="build-content">
         <!-- 步骤指示器 -->
-        <el-steps :active="currentStep" finish-status="success" class="build-steps">
+        <el-steps :active="currentStep" finish-status="success" class="build-steps" align-center>
           <el-step title="选择小程序" description="选择要构建的小程序" />
           <el-step title="配置构建" description="设置构建参数" />
           <el-step title="开始构建" description="执行构建过程" />
