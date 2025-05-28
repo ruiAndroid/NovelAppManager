@@ -7,6 +7,8 @@ import App from './App.vue'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import axios from 'axios'
 
+window.global = window
+
 const app = createApp(App)
 app.use(ElementPlus)
 app.use(createPinia())

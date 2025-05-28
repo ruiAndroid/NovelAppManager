@@ -136,6 +136,10 @@
                     </el-select>
             </el-form-item>
             
+                  <el-form-item label="构建命令">
+                    <el-input v-model="configForm.buildCode" placeholder="请输入构建命令（如 npm run build:xxx）" />
+                  </el-form-item>
+
                   <el-form-item>
                     <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
                     <el-button type="danger" @click="handleDeleteConfirm" v-if="configForm.id">删除配置</el-button>
@@ -200,7 +204,8 @@ const configForm = ref({
   kuaishouClientId: '',
   kuaishouClientSecret: '',
   payCardStyle: null,
-  homeCardStyle: null
+  homeCardStyle: null,
+  buildCode: ''
 })
 
 // 过滤小程序列表
@@ -289,7 +294,8 @@ const fetchConfig = async (appId) => {
         kuaishouClientId: res.data.kuaishouClientId || '',
         kuaishouClientSecret: res.data.kuaishouClientSecret || '',
         payCardStyle: res.data.payCardStyle ?? null,
-        homeCardStyle: res.data.homeCardStyle ?? null
+        homeCardStyle: res.data.homeCardStyle ?? null,
+        buildCode: res.data.buildCode || ''
       }
     } else {
       throw new Error(res.message || '获取配置失败')
@@ -306,7 +312,8 @@ const fetchConfig = async (appId) => {
       kuaishouClientId: '',
       kuaishouClientSecret: '',
       payCardStyle: null,
-      homeCardStyle: null
+      homeCardStyle: null,
+      buildCode: ''
     }
   } finally {
     loadingConfig.value = false
@@ -363,7 +370,8 @@ const handleSaveConfig = async () => {
       kuaishouClientId: configForm.value.kuaishouClientId,
       kuaishouClientSecret: configForm.value.kuaishouClientSecret,
       payCardStyle: configForm.value.payCardStyle,
-      homeCardStyle: configForm.value.homeCardStyle
+      homeCardStyle: configForm.value.homeCardStyle,
+      buildCode: configForm.value.buildCode
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -398,7 +406,8 @@ const handleCreateConfig = async () => {
       kuaishouClientId: configForm.value.kuaishouClientId,
       kuaishouClientSecret: configForm.value.kuaishouClientSecret,
       payCardStyle: configForm.value.payCardStyle,
-      homeCardStyle: configForm.value.homeCardStyle
+      homeCardStyle: configForm.value.homeCardStyle,
+      buildCode: configForm.value.buildCode
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -414,7 +423,8 @@ const handleCreateConfig = async () => {
         kuaishouClientId: res.data.kuaishouClientId || '',
         kuaishouClientSecret: res.data.kuaishouClientSecret || '',
         payCardStyle: res.data.payCardStyle ?? null,
-        homeCardStyle: res.data.homeCardStyle ?? null
+        homeCardStyle: res.data.homeCardStyle ?? null,
+        buildCode: res.data.buildCode || ''
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -458,7 +468,8 @@ const handleDeleteConfig = async () => {
         kuaishouClientId: '',
         kuaishouClientSecret: '',
         payCardStyle: null,
-        homeCardStyle: null
+        homeCardStyle: null,
+        buildCode: ''
       }
       // 关闭确认对话框
       deleteDialogVisible.value = false

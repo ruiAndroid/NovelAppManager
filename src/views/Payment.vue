@@ -99,7 +99,7 @@
                         <div class="payment-info-item">
                           <span class="label">状态</span>
                           <el-tag size="small" :type="paymentConfig.normalPay.enabled ? 'success' : 'danger'" effect="light">
-                            {{ paymentConfig.normalPay.enabled ? '已配置' : '未配置' }}
+                            {{ paymentConfig.normalPay.enabled ? '已启用' : '未启用' }}
                           </el-tag>
                         </div>
                         <div class="payment-info-item">
@@ -154,7 +154,7 @@
                         <div class="payment-info-item">
                           <span class="label">状态</span>
                           <el-tag size="small" :type="paymentConfig.orderPay.enabled ? 'success' : 'danger'" effect="light">
-                            {{ paymentConfig.orderPay.enabled ? '已配置' : '未配置' }}
+                            {{ paymentConfig.orderPay.enabled ? '已启用' : '未启用' }}
                           </el-tag>
                         </div>
                         <div class="payment-info-item">
@@ -209,7 +209,7 @@
                         <div class="payment-info-item">
                           <span class="label">状态</span>
                           <el-tag size="small" :type="paymentConfig.renewPay.enabled ? 'success' : 'danger'" effect="light">
-                            {{ paymentConfig.renewPay.enabled ? '已配置' : '未配置' }}
+                            {{ paymentConfig.renewPay.enabled ? '已启用' : '未启用' }}
                           </el-tag>
                         </div>
                         <div class="payment-info-item">

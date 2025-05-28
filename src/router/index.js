@@ -33,7 +33,14 @@ const routes = [
   {
     path: '/ai-plus',
     name: 'AiPlus',
-    component: () => import('../views/AiPlus.vue')
+    component: () => import('../views/AiPlus.vue'),
+    meta: { title: 'AI+' }
+  },
+  {
+    path: '/ai-build',
+    name: 'AiBuild',
+    component: () => import('../views/AiBuild.vue'),
+    meta: { title: '智能构建小程序' }
   }
 ]
 
