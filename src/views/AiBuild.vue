@@ -82,7 +82,7 @@
             >
               <el-form-item label="构建环境">
                 <el-radio-group v-model="buildConfig.environment">
-                  <el-radio label="development">开发环境</el-radio>
+                  <!-- <el-radio label="development">开发环境</el-radio> -->
                   <el-radio label="production">生产环境</el-radio>
                 </el-radio-group>
               </el-form-item>
@@ -249,7 +249,7 @@ const connectLogSocket = (taskIdToSubscribe) => {
           }
         })
         console.log(message.body)
-        if (message.body.includes('BUILD_FINISHED') || message.body.includes('构建完成') || message.body.includes('Build completed successfully')) {
+        if (message.body.includes('Build completed successfully')) {
           setTimeout(() => {
             if (stompClient.value) stompClient.value.disconnect()
             stompClient.value = null
@@ -257,7 +257,7 @@ const connectLogSocket = (taskIdToSubscribe) => {
             building.value = false
             taskId.value = null
           }, 1000)
-        } else if (message.body.includes('BUILD_FAILED') || message.body.includes('构建失败')) {
+        } else if (message.body.includes('Build error')) {
           setTimeout(() => {
             if (stompClient.value) stompClient.value.disconnect()
             stompClient.value = null
@@ -492,6 +492,7 @@ fetchApps()
 .ai-build-module {
   padding: 20px;
 }
+
 
 .build-container {
   min-height: calc(100vh - 40px);

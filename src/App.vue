@@ -1,6 +1,9 @@
 <template>
   <el-container>
     <el-aside width="200px">
+      <div class="logo-container">
+        <img src="/images/logo/wenqu_logo.png" class="logo-image">
+      </div>
       <el-menu
         :router="true"
         default-active="/apps"
@@ -43,7 +46,7 @@
     <el-container>
       <el-header>
         <div class="header-content">
-          <h2>小说小程序管理系统</h2>
+          <h2>文曲-小说小程序创作中心</h2>
           <!-- <h4>让需求流动更简单</h4> -->
           <el-dropdown>
             <span class="admin-info">
@@ -77,6 +80,18 @@ import { Platform, Setting, Picture, Money, Tools, ArrowDown, Monitor } from '@e
 
 .el-aside {
   background-color: #eef1f3;
+}
+
+.logo-container {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid #dcdfe6;
+}
+
+.logo-image {
+  height: 50px;
+  border-radius: 12px;
+  object-fit: contain;
 }
 
 .el-menu {
