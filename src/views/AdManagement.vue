@@ -569,7 +569,7 @@ const handleCreateAd = async (type) => {
   isEditMode.value = false
   currentAdType.value = type
   dialogTitle.value = `新建${getAdTypeName(type)}`
-
+  
   if (type === 'reward') {
     adForm.value = {
       rewardAdId: '',
@@ -601,10 +601,10 @@ const handleCreateAd = async (type) => {
 // 修改提交广告配置的方法，所有类型都在这里发起创建请求
 const handleSubmitAd = async () => {
   if (!adFormRef.value) return
-
+  
   await adFormRef.value.validate(async (valid) => {
     if (!valid) return
-
+    
     submitting.value = true
     try {
       let submitData = {
@@ -632,8 +632,8 @@ const handleSubmitAd = async () => {
         throw new Error(res.message || `${isEditMode.value ? '更新' : '创建'}${getAdTypeName(currentAdType.value)}配置失败`)
       }
       ElMessage.success(`${getAdTypeName(currentAdType.value)}配置${isEditMode.value ? '更新' : '创建'}成功`)
-      dialogVisible.value = false
-      fetchAdConfig(selectedApp.value.appid)
+        dialogVisible.value = false
+        fetchAdConfig(selectedApp.value.appid)
     } catch (error) {
       ElMessage.error(error.message || `${isEditMode.value ? '更新' : '创建'}${getAdTypeName(currentAdType.value)}配置失败`)
     } finally {

@@ -117,7 +117,7 @@
                       <el-input v-model="configForm.kuaishouClientSecret" placeholder="请输入快手Client Secret" show-password />
             </el-form-item>
                   </template>
-
+            
                   <el-form-item label="客服URL">
                     <el-input v-model="configForm.contact" placeholder="请输入客服URL" />
             </el-form-item>
@@ -129,7 +129,7 @@
                       <el-option :value="3" label="样式3" />
                       <el-option :value="4" label="样式4" />
                     </el-select>
-                  </el-form-item>
+            </el-form-item>
                   <el-form-item label="首页卡片样式">
                     <el-select v-model="configForm.homeCardStyle" placeholder="请选择首页卡片样式">
                       <el-option :value="1" label="样式1" />
@@ -138,8 +138,8 @@
             
                   <el-form-item label="构建命令">
                     <el-input v-model="configForm.buildCode" placeholder="请输入构建命令（如 npm run build:xxx）" />
-                  </el-form-item>
-
+            </el-form-item>
+            
                   <el-form-item>
                     <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
                     <el-button type="danger" @click="handleDeleteConfirm" v-if="configForm.id">删除配置</el-button>

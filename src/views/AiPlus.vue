@@ -28,13 +28,18 @@
             </el-tag>
           </div>
         </el-card>
-        <el-card class="feature-card" shadow="hover">
+        <el-card class="feature-card" shadow="hover" @click="goToPublish">
           <div class="feature-icon publish-center">
             <el-icon><Share /></el-icon>
           </div>
           <div class="feature-title">全平台自动发布中心</div>
           <div class="feature-desc">一站式管理与自动发布，覆盖主流小程序平台。</div>
-          <el-button type="primary" plain disabled>开发中</el-button>
+          <div class="expert-tag">
+            <el-tag type="warning" effect="dark" size="large">
+              <el-icon><Star /></el-icon>
+              工程师级
+            </el-tag>
+          </div>
         </el-card>
         <el-card class="feature-card" shadow="hover" disabled>
           <div class="feature-icon not-open">
@@ -57,6 +62,10 @@ const router = useRouter()
 
 const goToBuild = () => {
   router.push('/ai-build')
+}
+
+const goToPublish = () => {
+  router.push('/ai-publish')
 }
 // 预留后续AI相关逻辑
 </script>

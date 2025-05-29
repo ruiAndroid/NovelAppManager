@@ -80,6 +80,9 @@
               label-width="120px"
               class="config-form"
             >
+              <el-form-item label="小程序版本">
+                <el-input v-model="selectedApp.version" disabled />
+              </el-form-item>
               <el-form-item label="构建环境">
                 <el-radio-group v-model="buildConfig.environment">
                   <!-- <el-radio label="development">开发环境</el-radio> -->
@@ -125,6 +128,9 @@
               <el-descriptions :column="1" border>
                 <el-descriptions-item label="小程序名称">
                   {{ selectedApp?.appName }}
+                </el-descriptions-item>
+                <el-descriptions-item label="小程序版本">
+                  {{ selectedApp?.version }}
                 </el-descriptions-item>
                 <el-descriptions-item label="平台">
                   {{ selectedApp?.platform }}
@@ -290,7 +296,8 @@ const fetchApps = async () => {
         id: app.id,
         platform: getPlatformName(app.platform),
         appName: app.appName,
-        appid: app.appid
+        appid: app.appid,
+        version: app.version // 假设后端接口返回了 version 字段
       }))]
     })
     

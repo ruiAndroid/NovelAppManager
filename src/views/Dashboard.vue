@@ -184,6 +184,10 @@
           <el-input v-model="appForm.appName" placeholder="请输入小程序名称" />
         </el-form-item>
         
+        <el-form-item label="version">
+          <el-input v-model="appForm.version" placeholder="请输入版本号" />
+        </el-form-item>
+        
         <el-form-item label="appCode">
           <el-input v-model="appForm.appCode" placeholder="例：tt_miniapp_yunyounovel" />
         </el-form-item>
@@ -309,6 +313,7 @@ const fetchAppList = async () => {
         bannerId: app.bannerId,
         mainTheme: app.mainTheme,
         secondTheme: app.secondTheme,
+        version: app.version,
         status: '运行中',
         createTime: new Date(app.createTime).toLocaleDateString(),
         updateTime: new Date(app.updateTime).toLocaleDateString()
@@ -340,7 +345,8 @@ const appForm = ref({
   deliverId: '',
   bannerId: '',
   mainTheme: '',
-  secondTheme: ''
+  secondTheme: '',
+  version: ''
 })
 
 // 根据选中平台过滤小程序列表
@@ -418,7 +424,8 @@ const handleAddApp = () => {
     deliverId: '',
     bannerId: '',
     mainTheme: '',
-    secondTheme: ''
+    secondTheme: '',
+    version: ''
   }
   dialogVisible.value = true
 }
@@ -438,7 +445,8 @@ const handleEdit = (app) => {
     deliverId: app.deliverId,
     bannerId: app.bannerId,
     mainTheme: app.mainTheme,
-    secondTheme: app.secondTheme
+    secondTheme: app.secondTheme,
+    version: app.version
   }
   dialogVisible.value = true
 }
@@ -498,8 +506,11 @@ const handleSave = async () => {
       deliverId: appForm.value.deliverId,
       bannerId: appForm.value.bannerId,
       mainTheme: appForm.value.mainTheme,
-      secondTheme: appForm.value.secondTheme
+      secondTheme: appForm.value.secondTheme,
+      version: appForm.value.version
     }
+
+    
 
     if (isEdit.value) {
       // 添加 id 字段
@@ -555,6 +566,11 @@ const tableColumns = [
     prop: 'appName',
     label: '小程序名称',
     width: '150'
+  },
+  {
+    prop: 'version',
+    label: '版本号',
+    width: '100'
   },
   {
     prop: 'appid',
