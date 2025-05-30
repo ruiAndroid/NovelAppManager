@@ -18,7 +18,7 @@
 
       <div class="publish-content">
         <!-- 步骤指示器 -->
-        <el-steps :active="currentStep" finish-status="success" class="publish-steps" align-center>
+        <el-steps :active="currentStep + 1" finish-status="success" class="publish-steps" align-center>
           <el-step title="选择小程序" description="选择已构建完成的小程序" />
           <el-step title="选择平台" description="选择要发布的平台" />
           <el-step title="配置信息" description="配置发布参数" />
@@ -156,8 +156,26 @@
                 <el-input
                   v-model="publishConfig.description"
                   type="textarea"
-                  rows="3"
+                  :rows="3"
                   placeholder="请输入本次发布的说明信息"
+                />
+              </el-form-item>
+              <el-form-item v-if="selectedPlatform === 'mp-toutiao'" label="抖音AppToken">
+                <el-input
+                  v-model="publishCommonConfig.douyinAppToken"
+                  type="textarea"
+                  :rows="4"
+                  readonly
+                  placeholder="请联系产品经理配置appToken"
+                />
+              </el-form-item>
+              <el-form-item v-if="selectedPlatform === 'mp-kuaishou'" label="快手AppToken">
+                <el-input
+                  v-model="publishCommonConfig.kuaishouAppToken"
+                  type="textarea"
+                  :rows="4"
+                  readonly
+                  placeholder="请联系产品经理配置appToken"
                 />
               </el-form-item>
             </el-form>
@@ -181,8 +199,16 @@
               <el-button type="danger" @click="handleStopPublish">停止发布</el-button>
             </div>
             <div class="publish-actions" v-if="publishFailed">
-              <el-button @click="currentStep = 2; publishFailed = false">返回上一步</el-button>
-              <el-button type="primary" @click="handleStartPublish">重新发布</el-button>
+              <el-result
+                icon="error"
+                title="发布失败"
+                sub-title="请检查日志并重试"
+              >
+                <template #extra>
+                  <el-button @click="currentStep = 2; publishFailed = false">返回上一步</el-button>
+                  <el-button type="primary" @click="handleStartPublish">重新发布</el-button>
+                </template>
+              </el-result>
             </div>
           </div>
 
@@ -197,7 +223,13 @@
                 <div v-if="qrCodeImage" class="qrcode-container">
                   <h4>体验版二维码</h4>
                   <img :src="qrCodeImage" alt="体验版二维码" class="qrcode-image" />
-                  <p>请使用对应平台APP扫码体验</p>
+                  <p>请使用{{ getPlatformAppName(selectedPlatform) }}APP扫码体验</p>
+                  <p v-if="selectedPlatform === 'mp-toutiao'" class="douyin-tip">
+                    或前往抖音开放平台扫码体验，地址：
+                    <a href="https://developer.open-douyin.com/console?type=1" target="_blank">
+                      https://developer.open-douyin.com/console?type=1
+                    </a>
+                  </p>
                 </div>
                 <el-button type="primary" @click="goBack">返回首页</el-button>
                 <el-button @click="resetPublish">重新发布</el-button>
@@ -225,6 +257,7 @@ const router = useRouter()
 const currentStep = ref(0)
 const publishing = ref(false)
 const publishFailed = ref(false)
+const loading = ref(false)
 
 // 构建列表
 const buildList = ref([])
@@ -232,6 +265,7 @@ const searchQuery = ref('')
 
 // 获取构建列表
 const fetchBuildList = async () => {
+  loading.value = true
   try {
     const res = await request.get('/api/novel-publish/list')
     if (res.code === 200) {
@@ -242,6 +276,8 @@ const fetchBuildList = async () => {
   } catch (error) {
     console.error('获取构建列表失败:', error)
     ElMessage.error('获取构建列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -353,6 +389,7 @@ const getPlatformTagType = (platformCode) => {
 // 处理选择构建
 const handleSelectBuild = (platform) => {
   selectedBuild.value = platform
+  selectedPlatform.value = ''
   nextStep()
 }
 
@@ -375,23 +412,16 @@ const logContentRef = ref(null)
 const qrCodeUrl = ref(null)
 const qrCodeImage = ref(null)
 
-// 生成二维码
-const generateQRCode = async (url) => {
-  try {
-    const qrDataUrl = await QRCode.toDataURL(url, {
-      width: 180,
-      margin: 1,
-      color: {
-        dark: '#000000',
-        light: '#ffffff'
-      }
-    })
-    qrCodeImage.value = qrDataUrl
-  } catch (err) {
-    console.error('生成二维码失败:', err)
-    ElMessage.error('生成二维码失败')
+// Helper function to convert ArrayBuffer to Base64 string
+const arrayBufferToBase64 = (buffer) => {
+  let binary = '';
+  const bytes = new Uint8Array(buffer);
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
   }
-}
+  return btoa(binary);
+};
 
 // 连接发布日志 WebSocket
 const connectPublishLogSocket = (taskId) => {
@@ -413,14 +443,22 @@ const connectPublishLogSocket = (taskId) => {
             logContentRef.value.scrollTop = logContentRef.value.scrollHeight
           }
         })
+        console.log("message.body:",message.body)
         if (message.body.startsWith('Publish success')) {
-          setTimeout(() => {
+          setTimeout(async () => {
             if (publishStompClient.value) publishStompClient.value.disconnect()
             publishStompClient.value = null
             publishing.value = false
+
+            // 如果是快手平台，先获取二维码再进入下一步
+            if(selectedPlatform.value === 'mp-kuaishou' && publishTaskId.value) {
+               await fetchKuaishouQRCode(publishTaskId.value)
+            }
+
             publishTaskId.value = null
             currentStep.value = 4
             publishFailed.value = false
+
           }, 1000)
         } else if (message.body.startsWith('Publish error')) {
           setTimeout(() => {
@@ -431,14 +469,50 @@ const connectPublishLogSocket = (taskId) => {
             publishFailed.value = true
             ElMessage.error('发布失败，请检查日志并重试')
           }, 1000)
-        } else if(message.body.startsWith('二维码生成成功: ')){
-          qrCodeUrl.value = message.body.substring('二维码生成成功: '.length).trim()
-          generateQRCode(qrCodeUrl.value) // 生成二维码
+        } else if(message.body.startsWith('[抖音] 二维码生成成功:')){
+          qrCodeUrl.value = message.body.substring('[抖音] 二维码生成成功:'.length).trim()
+          console.log("qrCodeUrl:",qrCodeUrl)
+          generateQRCode(qrCodeUrl.value) // 抖音使用generateQRCode生成二维码
+        }else if(message.body.startsWith('[快手] 二维码生成成功:')){
+          // 快手二维码日志表示二维码已生成，但需要调用接口获取
+          // 不在此处直接处理，留待发布成功后获取
+          // 已经由publish success逻辑触发获取
         }
       }
     })
   })
   publishStompClient.value = client
+}
+
+// 在发布成功后，如果当前是快手平台，调用接口获取二维码
+const fetchKuaishouQRCode = async (taskId) => {
+  if (!taskId || selectedPlatform.value !== 'mp-kuaishou') return
+  try {
+    // 使用axios获取原始响应，绕过拦截器的data处理
+    const response = await request({
+      method: 'GET',
+      url: `/api/novel-publish/qrcode/${taskId}`,
+      responseType: 'arraybuffer' // 告知axios以ArrayBuffer形式处理响应
+    })
+
+    if (response.status === 200 && response.data) {
+      // 将ArrayBuffer转换为Blob对象，并创建Object URL
+      const blob = new Blob([response.data], { type: response.headers['content-type'] || 'image/png' });
+      qrCodeImage.value = URL.createObjectURL(blob);
+      console.log("快手二维码Object URL:", qrCodeImage.value);
+
+    } else {
+      // 更详细的错误提示
+      const errorMsg = `获取快手体验版二维码失败: 状态码 ${response.status}, 消息: ${response.statusText || '未知错误'}`;
+      ElMessage.error(errorMsg)
+      console.error(errorMsg, response); // 打印完整的响应对象
+      qrCodeImage.value = null // 获取失败则不显示二维码
+    }
+  } catch (error) {
+    console.error('获取快手体验版二维码失败:', error) // 打印完整的错误对象
+    ElMessage.error('获取快手体验版二维码失败: ' + (error?.message || ''))
+    qrCodeImage.value = null // 获取失败则不显示二维码
+  }
 }
 
 // 停止发布
@@ -463,6 +537,14 @@ const handleStopPublish = async () => {
 
 // 开始发布
 const handleStartPublish = async () => {
+  // 校验token
+  if (
+    (selectedPlatform.value === 'mp-toutiao' && !publishCommonConfig.value.douyinAppToken) ||
+    (selectedPlatform.value === 'mp-kuaishou' && !publishCommonConfig.value.kuaishouAppToken)
+  ) {
+    ElMessage.error('请联系产品经理进行appToken配置后再发布');
+    return;
+  }
   // 立即切换到日志面板
   currentStep.value = 3
   // 组装参数
@@ -482,6 +564,9 @@ const handleStartPublish = async () => {
   if (platformInfo.platformCode === 'mp-toutiao' && publishCommonConfig.value.douyinAppToken) {
     params.douyinAppToken = publishCommonConfig.value.douyinAppToken
   }
+  if (platformInfo.platformCode === 'mp-kuaishou' && publishCommonConfig.value.kuaishouAppToken) {
+    params.kuaishouAppToken = publishCommonConfig.value.kuaishouAppToken
+  }
   publishing.value = true
   publishLogs.value = []
   publishTaskId.value = null
@@ -494,10 +579,12 @@ const handleStartPublish = async () => {
     } else {
       ElMessage.error('启动发布失败: ' + (res.message || '未知错误'))
       publishing.value = false
+      publishFailed.value = true
     }
   } catch (error) {
     ElMessage.error('启动发布失败: ' + (error?.message || ''))
     publishing.value = false
+    publishFailed.value = true
   }
 }
 
@@ -545,10 +632,24 @@ onBeforeUnmount(() => {
   if (publishTaskId.value) {
     handleStopPublish()
   }
+  // 释放可能存在的Object URL
+  if (qrCodeImage.value && qrCodeImage.value.startsWith('blob:')) {
+    URL.revokeObjectURL(qrCodeImage.value);
+  }
 })
 
 // 初始化
 fetchBuildList()
+
+const getPlatformAppName = (platformCode) => {
+  const appNames = {
+    'mp-weixin': '微信',
+    'mp-toutiao': '抖音',
+    'mp-kuaishou': '快手',
+    'mp-baidu': '百度'
+  }
+  return appNames[platformCode] || '对应平台'
+}
 </script>
 
 <style scoped>
@@ -837,5 +938,17 @@ fetchBuildList()
   padding: 10px;
   background: #fff;
   border-radius: 4px;
+}
+.douyin-tip {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #666;
+}
+.douyin-tip a {
+  color: #409EFF;
+  text-decoration: none;
+}
+.douyin-tip a:hover {
+  text-decoration: underline;
 }
 </style> 

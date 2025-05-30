@@ -105,7 +105,15 @@
                   <template v-if="selectedApp.platform === '抖音'">
                     <el-form-item label="抖音IM ID">
                       <el-input v-model="configForm.douyinImId" placeholder="请输入抖音IM ID" />
-            </el-form-item>
+                    </el-form-item>
+                    <el-form-item label="抖音AppToken">
+                      <el-input
+                        v-model="configForm.douyinAppToken"
+                        type="textarea"
+                        :rows="6"
+                        placeholder="请输入抖音AppToken（私钥内容）"
+                      />
+                    </el-form-item>
                   </template>
 
                   <!-- Conditionally show Kuaishou fields -->
@@ -115,7 +123,15 @@
                     </el-form-item>
                     <el-form-item label="快手Client Secret">
                       <el-input v-model="configForm.kuaishouClientSecret" placeholder="请输入快手Client Secret" show-password />
-            </el-form-item>
+                    </el-form-item>
+                    <el-form-item label="快手AppToken">
+                      <el-input
+                        v-model="configForm.kuaishouAppToken"
+                        type="textarea"
+                        :rows="6"
+                        placeholder="请输入快手AppToken（私钥内容）"
+                      />
+                    </el-form-item>
                   </template>
             
                   <el-form-item label="客服URL">
@@ -205,7 +221,9 @@ const configForm = ref({
   kuaishouClientSecret: '',
   payCardStyle: null,
   homeCardStyle: null,
-  buildCode: ''
+  buildCode: '',
+  kuaishouAppToken: '',
+  douyinAppToken: ''
 })
 
 // 过滤小程序列表
@@ -295,7 +313,9 @@ const fetchConfig = async (appId) => {
         kuaishouClientSecret: res.data.kuaishouClientSecret || '',
         payCardStyle: res.data.payCardStyle ?? null,
         homeCardStyle: res.data.homeCardStyle ?? null,
-        buildCode: res.data.buildCode || ''
+        buildCode: res.data.buildCode || '',
+        kuaishouAppToken: res.data.kuaishouAppToken || '',
+        douyinAppToken: res.data.douyinAppToken || ''
       }
     } else {
       throw new Error(res.message || '获取配置失败')
@@ -313,7 +333,9 @@ const fetchConfig = async (appId) => {
       kuaishouClientSecret: '',
       payCardStyle: null,
       homeCardStyle: null,
-      buildCode: ''
+      buildCode: '',
+      kuaishouAppToken: '',
+      douyinAppToken: ''
     }
   } finally {
     loadingConfig.value = false
@@ -371,7 +393,9 @@ const handleSaveConfig = async () => {
       kuaishouClientSecret: configForm.value.kuaishouClientSecret,
       payCardStyle: configForm.value.payCardStyle,
       homeCardStyle: configForm.value.homeCardStyle,
-      buildCode: configForm.value.buildCode
+      buildCode: configForm.value.buildCode,
+      kuaishouAppToken: configForm.value.kuaishouAppToken,
+      douyinAppToken: configForm.value.douyinAppToken
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -407,7 +431,9 @@ const handleCreateConfig = async () => {
       kuaishouClientSecret: configForm.value.kuaishouClientSecret,
       payCardStyle: configForm.value.payCardStyle,
       homeCardStyle: configForm.value.homeCardStyle,
-      buildCode: configForm.value.buildCode
+      buildCode: configForm.value.buildCode,
+      kuaishouAppToken: configForm.value.kuaishouAppToken,
+      douyinAppToken: configForm.value.douyinAppToken
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -424,7 +450,9 @@ const handleCreateConfig = async () => {
         kuaishouClientSecret: res.data.kuaishouClientSecret || '',
         payCardStyle: res.data.payCardStyle ?? null,
         homeCardStyle: res.data.homeCardStyle ?? null,
-        buildCode: res.data.buildCode || ''
+        buildCode: res.data.buildCode || '',
+        kuaishouAppToken: res.data.kuaishouAppToken || '',
+        douyinAppToken: res.data.douyinAppToken || ''
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -469,7 +497,9 @@ const handleDeleteConfig = async () => {
         kuaishouClientSecret: '',
         payCardStyle: null,
         homeCardStyle: null,
-        buildCode: ''
+        buildCode: '',
+        kuaishouAppToken: '',
+        douyinAppToken: ''
       }
       // 关闭确认对话框
       deleteDialogVisible.value = false
