@@ -178,6 +178,15 @@
                   placeholder="请联系产品经理配置appToken"
                 />
               </el-form-item>
+              <el-form-item v-if="selectedPlatform === 'mp-weixin'" label="微信AppToken">
+                <el-input
+                  v-model="publishCommonConfig.weixinAppToken"
+                  type="textarea"
+                  :rows="4"
+                  readonly
+                  placeholder="请联系产品经理配置appToken"
+                />
+              </el-form-item>
             </el-form>
             <div class="step-actions">
               <el-button @click="currentStep = 1">上一步</el-button>
@@ -471,8 +480,8 @@ const connectPublishLogSocket = (taskId) => {
           }, 1000)
         } else if(message.body.startsWith('[抖音] 二维码生成成功:')){
           qrCodeUrl.value = message.body.substring('[抖音] 二维码生成成功:'.length).trim()
-          console.log("qrCodeUrl:",qrCodeUrl)
-          generateQRCode(qrCodeUrl.value) // 抖音使用generateQRCode生成二维码
+          console.log("douyin qrCodeUrl:",qrCodeUrl.value)
+          generateDouyinQRCode(qrCodeUrl.value) // 抖音使用generateQRCode生成二维码
         }else if(message.body.startsWith('[快手] 二维码生成成功:')){
           // 快手二维码日志表示二维码已生成，但需要调用接口获取
           // 不在此处直接处理，留待发布成功后获取
@@ -540,7 +549,8 @@ const handleStartPublish = async () => {
   // 校验token
   if (
     (selectedPlatform.value === 'mp-toutiao' && !publishCommonConfig.value.douyinAppToken) ||
-    (selectedPlatform.value === 'mp-kuaishou' && !publishCommonConfig.value.kuaishouAppToken)
+    (selectedPlatform.value === 'mp-kuaishou' && !publishCommonConfig.value.kuaishouAppToken) ||
+    (selectedPlatform.value === 'mp-weixin' && !publishCommonConfig.value.weixinAppToken)
   ) {
     ElMessage.error('请联系产品经理进行appToken配置后再发布');
     return;
@@ -566,6 +576,9 @@ const handleStartPublish = async () => {
   }
   if (platformInfo.platformCode === 'mp-kuaishou' && publishCommonConfig.value.kuaishouAppToken) {
     params.kuaishouAppToken = publishCommonConfig.value.kuaishouAppToken
+  }
+  if (platformInfo.platformCode === 'mp-weixin' && publishCommonConfig.value.weixinAppToken) {
+    params.weixinAppToken = publishCommonConfig.value.weixinAppToken
   }
   publishing.value = true
   publishLogs.value = []
@@ -649,6 +662,29 @@ const getPlatformAppName = (platformCode) => {
     'mp-baidu': '百度'
   }
   return appNames[platformCode] || '对应平台'
+}
+
+// 生成抖音二维码
+const generateDouyinQRCode = async (qrCodeUrl) => {
+  if (!qrCodeUrl) {
+    console.error('抖音二维码URL为空')
+    return
+  }
+  try {
+    // 使用QRCode.toDataURL生成二维码图片
+    const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl, {
+      width: 180,
+      margin: 1,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    })
+    qrCodeImage.value = qrCodeDataUrl
+  } catch (error) {
+    console.error('生成抖音二维码失败:', error)
+    ElMessage.error('生成抖音二维码失败')
+  }
 }
 </script>
 

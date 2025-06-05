@@ -116,6 +116,18 @@
                     </el-form-item>
                   </template>
 
+                  <!-- Conditionally show Weixin fields -->
+                  <template v-if="selectedApp.platform === '微信'">
+                    <el-form-item label="微信AppToken">
+                      <el-input
+                        v-model="configForm.weixinAppToken"
+                        type="textarea"
+                        :rows="6"
+                        placeholder="请输入微信AppToken（私钥内容）"
+                      />
+                    </el-form-item>
+                  </template>
+
                   <!-- Conditionally show Kuaishou fields -->
                   <template v-if="selectedApp.platform === '快手'">
                     <el-form-item label="快手Client ID">
@@ -223,7 +235,8 @@ const configForm = ref({
   homeCardStyle: null,
   buildCode: '',
   kuaishouAppToken: '',
-  douyinAppToken: ''
+  douyinAppToken: '',
+  weixinAppToken: ''
 })
 
 // 过滤小程序列表
@@ -315,14 +328,14 @@ const fetchConfig = async (appId) => {
         homeCardStyle: res.data.homeCardStyle ?? null,
         buildCode: res.data.buildCode || '',
         kuaishouAppToken: res.data.kuaishouAppToken || '',
-        douyinAppToken: res.data.douyinAppToken || ''
+        douyinAppToken: res.data.douyinAppToken || '',
+        weixinAppToken: res.data.weixinAppToken || ''
       }
     } else {
       throw new Error(res.message || '获取配置失败')
     }
   } catch (error) {
     console.error('获取配置失败:', error)
-    // ElMessage.error(error.message || '获取配置失败')
     // 重置配置表单
     configForm.value = {
       id: null,
@@ -335,7 +348,8 @@ const fetchConfig = async (appId) => {
       homeCardStyle: null,
       buildCode: '',
       kuaishouAppToken: '',
-      douyinAppToken: ''
+      douyinAppToken: '',
+      weixinAppToken: ''
     }
   } finally {
     loadingConfig.value = false
@@ -395,7 +409,8 @@ const handleSaveConfig = async () => {
       homeCardStyle: configForm.value.homeCardStyle,
       buildCode: configForm.value.buildCode,
       kuaishouAppToken: configForm.value.kuaishouAppToken,
-      douyinAppToken: configForm.value.douyinAppToken
+      douyinAppToken: configForm.value.douyinAppToken,
+      weixinAppToken: configForm.value.weixinAppToken
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -433,7 +448,8 @@ const handleCreateConfig = async () => {
       homeCardStyle: configForm.value.homeCardStyle,
       buildCode: configForm.value.buildCode,
       kuaishouAppToken: configForm.value.kuaishouAppToken,
-      douyinAppToken: configForm.value.douyinAppToken
+      douyinAppToken: configForm.value.douyinAppToken,
+      weixinAppToken: configForm.value.weixinAppToken
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -452,7 +468,8 @@ const handleCreateConfig = async () => {
         homeCardStyle: res.data.homeCardStyle ?? null,
         buildCode: res.data.buildCode || '',
         kuaishouAppToken: res.data.kuaishouAppToken || '',
-        douyinAppToken: res.data.douyinAppToken || ''
+        douyinAppToken: res.data.douyinAppToken || '',
+        weixinAppToken: res.data.weixinAppToken || ''
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -499,7 +516,8 @@ const handleDeleteConfig = async () => {
         homeCardStyle: null,
         buildCode: '',
         kuaishouAppToken: '',
-        douyinAppToken: ''
+        douyinAppToken: '',
+        weixinAppToken: ''
       }
       // 关闭确认对话框
       deleteDialogVisible.value = false

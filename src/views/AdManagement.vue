@@ -158,16 +158,20 @@
                   <div class="ad-card-content" v-loading="loadingAdConfig">
                     <template v-if="adConfig?.interstitial">
                       <div class="ad-info-list">
-                        <el-empty 
-                          description="暂未配置插屏广告" 
-                          :image-size="60"
-                        >
-                          <template #description>
-                            <div class="empty-description">
-                              <p>暂未配置插屏广告</p>
-                            </div>
-                          </template>
-                        </el-empty>
+                        <div class="ad-info-item">
+                          <span class="label">广告位ID</span>
+                          <span class="value">{{ adConfig.interstitial.interstitialAdId }}</span>
+                        </div>
+                        <div class="ad-info-item">
+                          <span class="label">展示次数</span>
+                          <span class="value">{{ adConfig.interstitial.interstitialCount }}次</span>
+                        </div>
+                        <div class="ad-info-item">
+                          <span class="label">状态</span>
+                          <el-tag size="small" :type="adConfig.interstitial.isInterstitialAdEnabled ? 'success' : 'danger'" effect="light">
+                            {{ adConfig.interstitial.isInterstitialAdEnabled ? '已启用' : '未启用' }}
+                          </el-tag>
+                        </div>
                       </div>
                     </template>
                     <el-empty v-else description="暂未配置插屏广告" :image-size="60" />
@@ -176,7 +180,7 @@
                   <!-- 操作按钮区 -->
                   <div class="ad-card-footer">
                     <template v-if="adConfig?.interstitial">
-                      <el-button type="primary" link disabled title="暂不支持编辑">
+                      <el-button type="primary" link @click="handleEditAd('interstitial')">
                         <el-icon><Edit /></el-icon>编辑
                       </el-button>
                       <el-button type="danger" link @click="handleDeleteAd('interstitial')">
@@ -295,8 +299,14 @@
         </template>
         <!-- 插屏广告表单 -->
         <template v-if="currentAdType === 'interstitial'">
-          <el-form-item label="广告位ID" prop="adId">
-            <el-input v-model="adForm.adId" placeholder="请输入广告位ID" />
+          <el-form-item label="广告位ID" prop="interstitialAdId">
+            <el-input v-model="adForm.interstitialAdId" placeholder="请输入广告位ID" />
+          </el-form-item>
+          <el-form-item label="展示次数" prop="interstitialCount">
+            <el-input-number v-model="adForm.interstitialCount" :min="1" />
+          </el-form-item>
+          <el-form-item label="是否启用" prop="isInterstitialAdEnabled">
+            <el-switch v-model="adForm.isInterstitialAdEnabled" />
           </el-form-item>
         </template>
         <!-- 信息流广告表单 -->
@@ -492,28 +502,42 @@ const handleRefresh = () => {
 
 // 修改编辑广告配置的方法
 const handleEditAd = (type) => {
-  if (type !== 'reward') {
+  if (type !== 'reward' && type !== 'interstitial') {
     ElMessage.warning('该类型广告暂不支持编辑')
     return
   }
   isEditMode.value = true
   currentAdType.value = type
   dialogTitle.value = `编辑${getAdTypeName(type)}`
-  // 初始化激励广告表单数据
-  if (adConfig.value?.reward) {
+  
+  if (type === 'reward') {
     adForm.value = {
       rewardAdId: adConfig.value.reward.rewardAdId || '',
       rewardCount: adConfig.value.reward.rewardCount || 1,
       isRewardAdEnabled: adConfig.value.reward.isRewardAdEnabled || false
     }
-  }
-  adFormRules.value = {
-    rewardAdId: [
-      { required: true, message: '请输入广告位ID', trigger: 'blur' }
-    ],
-    rewardCount: [
-      { required: true, message: '请输入激励次数', trigger: 'blur' }
-    ]
+    adFormRules.value = {
+      rewardAdId: [
+        { required: true, message: '请输入广告位ID', trigger: 'blur' }
+      ],
+      rewardCount: [
+        { required: true, message: '请输入激励次数', trigger: 'blur' }
+      ]
+    }
+  } else if (type === 'interstitial') {
+    adForm.value = {
+      interstitialAdId: adConfig.value.interstitial.interstitialAdId || '',
+      interstitialCount: adConfig.value.interstitial.interstitialCount || 1,
+      isInterstitialAdEnabled: adConfig.value.interstitial.isInterstitialAdEnabled || false
+    }
+    adFormRules.value = {
+      interstitialAdId: [
+        { required: true, message: '请输入广告位ID', trigger: 'blur' }
+      ],
+      interstitialCount: [
+        { required: true, message: '请输入展示次数', trigger: 'blur' }
+      ]
+    }
   }
   dialogVisible.value = true
 }
@@ -528,7 +552,7 @@ const getAdTypeName = (type) => {
   return names[type] || type
 }
 
-// 修改创建广告配置的方法，所有类型都弹窗确认
+// 修改创建广告配置的方法
 const handleCreateAd = async (type) => {
   if (!selectedApp.value?.appid) {
     ElMessage.warning('请先选择小程序')
@@ -584,8 +608,22 @@ const handleCreateAd = async (type) => {
         { required: true, message: '请输入激励次数', trigger: 'blur' }
       ]
     }
+  } else if (type === 'interstitial') {
+    adForm.value = {
+      interstitialAdId: '',
+      interstitialCount: 1,
+      isInterstitialAdEnabled: false
+    }
+    adFormRules.value = {
+      interstitialAdId: [
+        { required: true, message: '请输入广告位ID', trigger: 'blur' }
+      ],
+      interstitialCount: [
+        { required: true, message: '请输入展示次数', trigger: 'blur' }
+      ]
+    }
   } else {
-    // 插屏广告、信息流广告表单只显示广告位ID
+    // 信息流广告表单只显示广告位ID
     adForm.value = {
       adId: ''
     }
@@ -598,7 +636,7 @@ const handleCreateAd = async (type) => {
   dialogVisible.value = true
 }
 
-// 修改提交广告配置的方法，所有类型都在这里发起创建请求
+// 修改提交广告配置的方法
 const handleSubmitAd = async () => {
   if (!adFormRef.value) return
   
@@ -618,6 +656,13 @@ const handleSubmitAd = async () => {
           rewardCount: adForm.value.rewardCount,
           isRewardAdEnabled: adForm.value.isRewardAdEnabled
         }
+      } else if (currentAdType.value === 'interstitial') {
+        submitData = {
+          ...submitData,
+          interstitialAdId: adForm.value.interstitialAdId,
+          interstitialCount: adForm.value.interstitialCount,
+          isInterstitialAdEnabled: adForm.value.isInterstitialAdEnabled
+        }
       } else {
         submitData = {
           ...submitData,
@@ -632,8 +677,8 @@ const handleSubmitAd = async () => {
         throw new Error(res.message || `${isEditMode.value ? '更新' : '创建'}${getAdTypeName(currentAdType.value)}配置失败`)
       }
       ElMessage.success(`${getAdTypeName(currentAdType.value)}配置${isEditMode.value ? '更新' : '创建'}成功`)
-        dialogVisible.value = false
-        fetchAdConfig(selectedApp.value.appid)
+      dialogVisible.value = false
+      fetchAdConfig(selectedApp.value.appid)
     } catch (error) {
       ElMessage.error(error.message || `${isEditMode.value ? '更新' : '创建'}${getAdTypeName(currentAdType.value)}配置失败`)
     } finally {
