@@ -7,90 +7,18 @@
         </div>
       </template>
       <div class="workflow-content">
-        <!-- 步骤指示器 -->
-        <!-- <el-steps :active="currentStep" finish-status="success" align-center class="create-steps fancy-steps">
-          <el-step title="基本信息" description="配置小程序名称、简介等" />
-          <el-step title="支付与广告" description="设置支付和广告相关配置" />
-          <el-step title="其他通用信息" description="配置其他通用设置" />
-        </el-steps> -->
         <CustomSteps :active-step="currentStep" :steps="stepsData" @step-click="handleStepClick" />
 
         <!-- 步骤内容 -->
         <div class="step-panel">
           <!-- 步骤1: 配置基本信息 -->
           <div v-if="currentStep === 0">
-            <!-- 基本信息表单 -->
-            <div v-if="currentSubStep === 0" class="narrow-form-container">
-              <h4>步骤1: 配置基本信息</h4>
-              <el-form :model="basicInfoForm" :rules="basicInfoFormRules" ref="basicInfoFormRef" label-width="120px">
-                <el-form-item label="appName" prop="appName">
-                  <el-input v-model="basicInfoForm.appName" placeholder="请输入小程序名称" />
-                </el-form-item>
-                <el-form-item label="platform" prop="platform">
-                  <el-select v-model="basicInfoForm.platform" placeholder="请选择平台" style="width: 100%;">
-                    <el-option label="抖音小程序" value="抖音" />
-                    <el-option label="快手小程序" value="快手" />
-                    <el-option label="微信小程序" value="微信" />
-                    <el-option label="百度小程序" value="百度" />
-                  </el-select>
-                </el-form-item>
-                <el-form-item label="version" prop="version">
-                  <el-input v-model="basicInfoForm.version" placeholder="请输入版本号" />
-                </el-form-item>
-                <el-form-item label="appCode" prop="appCode">
-                  <el-input v-model="basicInfoForm.appCode" placeholder="例：tt_miniapp_yunyounovel" />
-                </el-form-item>
-                <el-form-item label="product" prop="product">
-                  <el-input v-model="basicInfoForm.product" placeholder="例：yunyounovel" />
-                </el-form-item>
-                <el-form-item label="customer" prop="customer">
-                  <el-input v-model="basicInfoForm.customer" placeholder="例：tt_yunyounovel" />
-                </el-form-item>
-                <el-form-item label="appid" prop="appid">
-                  <el-input v-model="basicInfoForm.appid" placeholder="请输入AppID" />
-                </el-form-item>
-                <el-form-item label="token_id" prop="token_id">
-                  <el-input-number v-model="basicInfoForm.token_id" :min="1" placeholder="请输入Token ID" style="width: 100%;" />
-                </el-form-item>
-                <el-form-item label="cl" prop="cl">
-                  <el-input v-model="basicInfoForm.cl" placeholder="例：tt_miniapp_yunyounovel" />
-                </el-form-item>
-              </el-form>
-            </div>
-
-            <!-- 主题色选择 -->
-            <div v-if="currentSubStep === 1" class="narrow-form-container">
-              <h4>步骤1: 配置主题色</h4>
-              <div class="theme-selection-content">
-                <el-form :model="basicInfoForm" label-width="120px">
-                  <el-form-item label="mainTheme" prop="mainTheme">
-                    <el-color-picker v-model="basicInfoForm.mainTheme" show-alpha color-format="hex" />
-                  </el-form-item>
-                  <el-form-item label="secondTheme" prop="secondTheme">
-                    <el-color-picker v-model="basicInfoForm.secondTheme" show-alpha color-format="hex" />
-                  </el-form-item>
-                  <el-form-item label="预设主题" prop="predefinedThemes">
-                    <div class="predefined-themes-container">
-                      <div
-                        v-for="theme in predefinedThemes"
-                        :key="theme.name"
-                        class="theme-option"
-                        @click="selectPredefinedTheme(theme)"
-                      >
-                        <div class="theme-colors">
-                          <div class="main-color" :style="{ backgroundColor: theme.main }"></div>
-                          <div class="second-color" :style="{ backgroundColor: theme.second }"></div>
-                        </div>
-                        <span class="theme-name">{{ theme.name }}</span>
-                      </div>
-                    </div>
-                  </el-form-item>
-                </el-form>
-                <div v-show="selectedThemeImage" class="theme-image-preview">
-                  <img v-if="selectedThemeImage" :src="selectedThemeImage" alt="Theme Preview" />
-                </div>
-              </div>
-            </div>
+            <AiCreateStep1
+              v-model="basicInfoForm"
+              :current-sub-step="currentSubStep"
+              @update:current-sub-step="currentSubStep = $event"
+              ref="basicInfoStepRef"
+            />
           </div>
 
           <!-- 步骤2: 配置支付，广告信息 -->
@@ -606,6 +534,7 @@ import { ElMessage } from 'element-plus'
 import CustomSteps from '../components/common/CustomSteps.vue'
 import { Money, Goods, Calendar, Star, Wallet, VideoPlay, Picture, Document } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import AiCreateStep1 from '../components/aiCreate/AiCreateStep1.vue'
 
 const router = useRouter()
 
@@ -613,7 +542,7 @@ const currentStep = ref(0)
 const currentSubStep = ref(0)
 
 // 表单引用
-const basicInfoFormRef = ref(null)
+const basicInfoStepRef = ref(null) // <-- use this for AiCreateStep1
 const microConfigFormRef = ref(null)
 const paymentConfigFormRef = ref(null)
 const adConfigFormRef = ref(null)
@@ -1163,9 +1092,9 @@ const nextStep = async () => {
   // 步骤1的校验
   if (currentStep.value === 0) {
     if (currentSubStep.value === 0) {
-      const valid = await basicInfoFormRef.value.validate().catch(() => false);
+      const valid = await basicInfoStepRef.value.validate().catch(() => false);
       if (!valid) {
-        ElMessage.error('Please fill in the complete "Basic Info"'); // Updated message
+        ElMessage.error('Please fill in the complete "Basic Info"');
         return;
       }
       currentSubStep.value = 1; // Move to theme selection sub-step
