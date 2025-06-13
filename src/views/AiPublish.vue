@@ -18,13 +18,7 @@
 
       <div class="publish-content">
         <!-- 步骤指示器 -->
-        <el-steps :active="currentStep + 1" finish-status="success" class="publish-steps" align-center>
-          <el-step title="选择小程序" description="选择已构建完成的小程序" />
-          <el-step title="选择平台" description="选择要发布的平台" />
-          <el-step title="配置信息" description="配置发布参数" />
-          <el-step title="开始发布" description="执行发布过程" />
-          <el-step title="发布完成" description="查看结果" />
-        </el-steps>
+        <CustomSteps :active-step="currentStep" :steps="publishStepsData" />
 
         <!-- 步骤内容 -->
         <div class="step-content">
@@ -261,12 +255,37 @@ import { pinyin } from 'pinyin-pro'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import QRCode from 'qrcode'
+import CustomSteps from '../components/common/CustomSteps.vue'
 
 const router = useRouter()
 const currentStep = ref(0)
 const publishing = ref(false)
 const publishFailed = ref(false)
 const loading = ref(false)
+
+// 定义发布步骤数据
+const publishStepsData = ref([
+  {
+    title: '选择小程序',
+    description: '选择已构建完成的小程序'
+  },
+  {
+    title: '选择平台',
+    description: '选择要发布的平台'
+  },
+  {
+    title: '配置信息',
+    description: '配置发布参数'
+  },
+  {
+    title: '开始发布',
+    description: '执行发布过程'
+  },
+  {
+    title: '发布完成',
+    description: '查看结果'
+  }
+])
 
 // 构建列表
 const buildList = ref([])

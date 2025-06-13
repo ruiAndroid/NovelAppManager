@@ -18,12 +18,7 @@
 
       <div class="build-content">
         <!-- 步骤指示器 -->
-        <el-steps :active="currentStep" finish-status="success" class="build-steps" align-center>
-          <el-step title="选择小程序" description="选择要构建的小程序" />
-          <el-step title="配置构建" description="设置构建参数" />
-          <el-step title="开始构建" description="执行构建过程" />
-          <el-step title="构建完成" description="查看结果" />
-        </el-steps>
+        <CustomSteps :active-step="currentStep" :steps="buildStepsData" />
 
         <!-- 步骤内容 -->
         <div class="step-content">
@@ -205,6 +200,7 @@ import request from '../utils/request'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import { pinyin } from 'pinyin-pro'
+import CustomSteps from '../components/CustomSteps.vue'
 
 const router = useRouter()
 const currentStep = ref(0)
@@ -213,6 +209,26 @@ const apps = ref([])
 const selectedApp = ref(null)
 const building = ref(false)
 const taskId = ref(null)
+
+// 定义构建步骤数据
+const buildStepsData = ref([
+  {
+    title: '选择小程序',
+    description: '选择要构建的小程序'
+  },
+  {
+    title: '配置构建',
+    description: '设置构建参数'
+  },
+  {
+    title: '开始构建',
+    description: '执行构建过程'
+  },
+  {
+    title: '构建完成',
+    description: '查看结果'
+  }
+])
 
 // 构建配置
 const buildConfig = ref({

@@ -47,6 +47,12 @@ const routes = [
     name: 'AiPublish',
     component: () => import('../views/AiPublish.vue'),
     meta: { title: '全平台自动发布中心' }
+  },
+  {
+    path: '/ai-create',
+    name: 'AiCreate',
+    component: () => import('../views/AiCreate.vue'),
+    meta: { title: '创意小程序孵化器' }
   }
 ]
 

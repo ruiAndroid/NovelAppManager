@@ -166,7 +166,29 @@
             
                   <el-form-item label="构建命令">
                     <el-input v-model="configForm.buildCode" placeholder="请输入构建命令（如 npm run build:xxx）" />
-            </el-form-item>
+                  </el-form-item>
+                  
+                  <!-- 我的页登录类型 -->
+                  <el-form-item label="我的页登录类型" class="login-type-item">
+                    <el-radio-group v-model="configForm.mineLoginType">
+                      <el-radio label="anonymousLogin">静默登录</el-radio>
+                      <el-radio label="phoneLogin">
+                        手机号授权登录
+                        <span class="form-tip">无手机号权限的小程序默认使用静默登录</span>
+                      </el-radio>
+                    </el-radio-group>
+                  </el-form-item>
+            
+                  <!-- 阅读页登录类型 -->
+                  <el-form-item label="阅读页登录类型" class="login-type-item">
+                    <el-radio-group v-model="configForm.readerLoginType">
+                      <el-radio label="anonymousLogin">静默登录</el-radio>
+                      <el-radio label="phoneLogin">
+                        手机号授权登录
+                        <span class="form-tip">无手机号权限的小程序默认使用静默登录</span>
+                      </el-radio>
+                    </el-radio-group>
+                  </el-form-item>
             
                   <el-form-item>
                     <el-button type="primary" @click="handleSaveConfig" :loading="saving">保存配置</el-button>
@@ -236,7 +258,9 @@ const configForm = ref({
   buildCode: '',
   kuaishouAppToken: '',
   douyinAppToken: '',
-  weixinAppToken: ''
+  weixinAppToken: '',
+  mineLoginType: 'anonymousLogin',
+  readerLoginType: 'anonymousLogin'
 })
 
 // 过滤小程序列表
@@ -247,22 +271,22 @@ const filteredApps = computed(() => {
   return apps.value.filter(app => {
     const name = app.appName || ''
     // 获取全拼和首字母
-    const namePinyinFirst = pinyin(name, { 
-      pattern: 'first', 
+    const namePinyinFirst = pinyin(name, {
+      pattern: 'first',
       type: 'array',
       toneType: 'none',
       nonZh: 'consecutive'
     }).join('').toLowerCase()
-    const namePinyinFull = pinyin(name, { 
-      pattern: 'pinyin', 
+    const namePinyinFull = pinyin(name, {
+      pattern: 'pinyin',
       type: 'array',
       toneType: 'none',
       nonZh: 'consecutive'
     }).join('').toLowerCase()
-    
+
     // 检查原始名称
     if (name.toLowerCase().includes(query)) return true
-    
+
     // 检查拼音首字母
     if (isSingleCharQuery) {
       // 对于单字符查询，严格匹配首字母
@@ -271,10 +295,10 @@ const filteredApps = computed(() => {
       // 对于多字符查询，检查是否以首字母开头
       if (namePinyinFirst.startsWith(query)) return true
     }
-    
+
     // 检查全拼
     if (namePinyinFull.includes(query)) return true
-    
+
     // 检查其他字段
     return (app.appid && app.appid.toLowerCase().includes(query))
   })
@@ -286,7 +310,7 @@ const fetchApps = async () => {
   try {
     const res = await request.get('/api/novel-apps/appLists')
     const data = res.data
-    
+
     let appList = []
     Object.values(data).forEach(platformApps => {
       appList = [...appList, ...platformApps.map(app => ({
@@ -296,7 +320,7 @@ const fetchApps = async () => {
         appid: app.appid
       }))]
     })
-    
+
     apps.value = appList
   } catch (error) {
     console.error('获取小程序列表失败:', error)
@@ -310,7 +334,7 @@ const fetchApps = async () => {
 // 获取通用配置
 const fetchConfig = async (appId) => {
   if (!appId) return
-  
+
   loadingConfig.value = true
   try {
     const res = await request.get('/api/novel-common/getAppCommonConfig', {
@@ -329,14 +353,31 @@ const fetchConfig = async (appId) => {
         buildCode: res.data.buildCode || '',
         kuaishouAppToken: res.data.kuaishouAppToken || '',
         douyinAppToken: res.data.douyinAppToken || '',
-        weixinAppToken: res.data.weixinAppToken || ''
+        weixinAppToken: res.data.weixinAppToken || '',
+        mineLoginType: res.data.mineLoginType || 'anonymousLogin',
+        readerLoginType: res.data.readerLoginType || 'anonymousLogin'
       }
     } else {
-      throw new Error(res.message || '获取配置失败')
+      ElMessage.warning(res.message || '获取配置失败，可能该小程序未创建通用配置');
+      configForm.value = {
+        id: null,
+        appId: selectedApp.value.appid,
+        contact: '',
+        douyinImId: '',
+        kuaishouClientId: '',
+        kuaishouClientSecret: '',
+        payCardStyle: null,
+        homeCardStyle: null,
+        buildCode: '',
+        kuaishouAppToken: '',
+        douyinAppToken: '',
+        weixinAppToken: '',
+        mineLoginType: 'anonymousLogin',
+        readerLoginType: 'anonymousLogin'
+      }
     }
   } catch (error) {
     console.error('获取配置失败:', error)
-    // 重置配置表单
     configForm.value = {
       id: null,
       appId: selectedApp.value.appid,
@@ -349,7 +390,9 @@ const fetchConfig = async (appId) => {
       buildCode: '',
       kuaishouAppToken: '',
       douyinAppToken: '',
-      weixinAppToken: ''
+      weixinAppToken: '',
+      mineLoginType: 'anonymousLogin',
+      readerLoginType: 'anonymousLogin'
     }
   } finally {
     loadingConfig.value = false
@@ -410,7 +453,9 @@ const handleSaveConfig = async () => {
       buildCode: configForm.value.buildCode,
       kuaishouAppToken: configForm.value.kuaishouAppToken,
       douyinAppToken: configForm.value.douyinAppToken,
-      weixinAppToken: configForm.value.weixinAppToken
+      weixinAppToken: configForm.value.weixinAppToken,
+      mineLoginType: configForm.value.mineLoginType,
+      readerLoginType: configForm.value.readerLoginType
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -449,7 +494,9 @@ const handleCreateConfig = async () => {
       buildCode: configForm.value.buildCode,
       kuaishouAppToken: configForm.value.kuaishouAppToken,
       douyinAppToken: configForm.value.douyinAppToken,
-      weixinAppToken: configForm.value.weixinAppToken
+      weixinAppToken: configForm.value.weixinAppToken,
+      mineLoginType: configForm.value.mineLoginType,
+      readerLoginType: configForm.value.readerLoginType
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -469,7 +516,9 @@ const handleCreateConfig = async () => {
         buildCode: res.data.buildCode || '',
         kuaishouAppToken: res.data.kuaishouAppToken || '',
         douyinAppToken: res.data.douyinAppToken || '',
-        weixinAppToken: res.data.weixinAppToken || ''
+        weixinAppToken: res.data.weixinAppToken || '',
+        mineLoginType: res.data.mineLoginType || 'anonymousLogin',
+        readerLoginType: res.data.readerLoginType || 'anonymousLogin'
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -504,7 +553,7 @@ const handleDeleteConfig = async () => {
     
     if (res.code === 200) {
       ElMessage.success('配置删除成功')
-      // 清空配置表单
+      // 清空配置表单并设置默认值
       configForm.value = {
         id: null,
         appId: selectedApp.value.appid,
@@ -517,7 +566,9 @@ const handleDeleteConfig = async () => {
         buildCode: '',
         kuaishouAppToken: '',
         douyinAppToken: '',
-        weixinAppToken: ''
+        weixinAppToken: '',
+        mineLoginType: 'anonymousLogin',
+        readerLoginType: 'anonymousLogin'
       }
       // 关闭确认对话框
       deleteDialogVisible.value = false
@@ -534,9 +585,16 @@ const handleDeleteConfig = async () => {
 
 const handleCopyGeneralConfig = () => {
   try {
-    localStorage.setItem('generalConfigCopy', JSON.stringify(configForm.value))
+    // 复制包含新字段的数据
+    const dataToCopy = {
+      ...configForm.value,
+      mineLoginType: configForm.value.mineLoginType,
+      readerLoginType: configForm.value.readerLoginType
+    }
+    localStorage.setItem('generalConfigCopy', JSON.stringify(dataToCopy))
     ElMessage.success('通用配置已复制')
   } catch (e) {
+    console.error('复制失败:', e)
     ElMessage.error('复制失败')
   }
 }
@@ -545,12 +603,20 @@ const handlePasteGeneralConfig = () => {
   try {
     const data = localStorage.getItem('generalConfigCopy')
     if (data) {
-      configForm.value = JSON.parse(data)
+      const parsedData = JSON.parse(data);
+      // 粘贴时更新新字段
+      configForm.value = {
+        ...configForm.value,
+        ...parsedData,
+        mineLoginType: parsedData.mineLoginType ?? 'anonymousLogin',
+        readerLoginType: parsedData.readerLoginType ?? 'anonymousLogin'
+      }
       ElMessage.success('通用配置已粘贴')
     } else {
       ElMessage.warning('没有可粘贴的配置')
     }
   } catch (e) {
+    console.error('粘贴失败:', e)
     ElMessage.error('粘贴失败')
   }
 }
@@ -655,5 +721,28 @@ onMounted(() => {
   font-size: 12px;
   margin-top: 8px;
   color: #C0C4CC;
+}
+
+.form-tip {
+  font-size: 12px;
+  color: #909399;
+  margin-left: 15px;
+  white-space: nowrap;
+}
+
+.login-type-item :deep(.el-form-item__content) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.login-type-item :deep(.el-form-item__content .el-radio-group) {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.login-type-item :deep(.el-radio__label) {
+  display: inline-flex;
+  align-items: center;
 }
 </style> 

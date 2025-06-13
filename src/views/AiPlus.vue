@@ -7,13 +7,18 @@
         </div>
       </template>
       <div class="feature-grid">
-        <el-card class="feature-card" shadow="hover">
+        <el-card class="feature-card" shadow="hover" @click="goToCreate">
           <div class="feature-icon gen-app">
             <el-icon><DocumentAdd /></el-icon>
           </div>
           <div class="feature-title">创意小程序孵化器</div>
           <div class="feature-desc">一键实现idea，自动生成代码，天马行空的想法照进现实。</div>
-          <el-button type="primary" plain disabled>开发中</el-button>
+          <div class="expert-tag">
+            <el-tag type="primary" effect="dark" size="large">
+              <el-icon><Star /></el-icon>
+              <span>产品级</span>
+            </el-tag>
+          </div>
         </el-card>
         <el-card class="feature-card" shadow="hover" @click="goToBuild">
           <div class="feature-icon build-app">
@@ -24,7 +29,7 @@
           <div class="expert-tag">
             <el-tag type="success" effect="dark" size="large">
               <el-icon><Star /></el-icon>
-              专家级
+              <span>专家级</span>
             </el-tag>
           </div>
         </el-card>
@@ -37,25 +42,26 @@
           <div class="expert-tag">
             <el-tag type="warning" effect="dark" size="large">
               <el-icon><Star /></el-icon>
-              工程师级
+              <span>工程师级</span>
             </el-tag>
           </div>
         </el-card>
         <el-card class="feature-card" shadow="hover" disabled>
-          <div class="feature-icon not-open">
-            <el-icon><Lock /></el-icon>
+         <div class="feature-icon not-open">
+           <el-icon><Lock /></el-icon>
           </div>
           <div class="feature-title">更多AI+能力</div>
           <div class="feature-desc">更多创意与AI能力，敬请期待后续开放。</div>
           <el-button type="info" plain disabled>暂未开放</el-button>
         </el-card>
+
       </div>
     </el-card>
   </div>
 </template>
 
 <script setup>
-import { DocumentAdd, Share, Lock, Tools, Star } from '@element-plus/icons-vue'
+import { DocumentAdd, Share, Tools, Star } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -67,7 +73,10 @@ const goToBuild = () => {
 const goToPublish = () => {
   router.push('/ai-publish')
 }
-// 预留后续AI相关逻辑
+
+const goToCreate = () => {
+  router.push('/ai-create')
+}
 </script>
 
 <style scoped>
@@ -137,6 +146,9 @@ const goToPublish = () => {
 .feature-icon.not-open {
   color: #909399;
 }
+.feature-icon.generate-app {
+  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+}
 .feature-title {
   font-size: 20px;
   font-weight: 600;
@@ -166,8 +178,19 @@ const goToPublish = () => {
   display: flex;
   align-items: center;
   gap: 4px;
+  line-height: 1;
 }
+
+.expert-tag :deep(.el-tag span) {
+  /* 移除所有垂直对齐相关的属性，完全依赖父级flex布局 */
+  /* margin-top: -0.5px; */
+}
+
 .expert-tag :deep(.el-icon) {
-  margin-right: 4px;
+  /* 移除所有垂直对齐相关的属性，完全依赖父级flex布局 */
+  /* position: relative; */
+  /* top: -0.5px; */
+  /* transform: translateY(...); */
+  /* margin-right: 4px; */
 }
 </style> 

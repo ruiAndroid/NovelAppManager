@@ -243,7 +243,7 @@
                 </div>
               </el-card>
 
-              <!-- 抖赞支付配置 -->
+              <!-- 抖钻支付配置 -->
               <template v-if="selectedApp && selectedApp.platform === '抖音'">
                 <el-card class="payment-type-card" :body-style="{ padding: '0' }">
                   <div class="payment-card-wrapper">
