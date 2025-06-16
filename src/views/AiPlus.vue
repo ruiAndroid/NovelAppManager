@@ -50,10 +50,19 @@
          <div class="feature-icon not-open">
            <el-icon><Lock /></el-icon>
           </div>
+          <div class="feature-title">文曲智能体</div>
+          <div class="feature-desc">敬请期待，由文曲提供支持的智能体能力。</div>
+          <el-button type="info" plain disabled>暂未开放</el-button>
+        </el-card>
+        <el-card class="feature-card" shadow="hover" disabled>
+         <div class="feature-icon not-open">
+           <el-icon><Lock /></el-icon>
+          </div>
           <div class="feature-title">更多AI+能力</div>
           <div class="feature-desc">更多创意与AI能力，敬请期待后续开放。</div>
           <el-button type="info" plain disabled>暂未开放</el-button>
         </el-card>
+       
 
       </div>
     </el-card>
@@ -89,7 +98,7 @@ const goToCreate = () => {
 }
 .feature-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 32px;
   margin-top: 32px;
 }

@@ -76,7 +76,7 @@
 </template>
 
 <script setup>
-import { ref, watch, toRefs } from 'vue';
+import { ref, watch, toRefs, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 
 const props = defineProps({
@@ -93,11 +93,25 @@ const emit = defineEmits(['update:modelValue']);
 
 // 表单数据双向绑定
 const form = ref({ ...props.modelValue });
-watch(() => props.modelValue, (val) => {
-  form.value = { ...val };
-});
-watch(form, (val) => {
-  emit('update:modelValue', val);
+
+// 监听 props 变化，更新本地表单数据
+watch(() => props.modelValue, (newVal) => {
+  nextTick(() => {
+    // 避免不必要的更新
+    if (JSON.stringify(newVal) !== JSON.stringify(form.value)) {
+      form.value = { ...newVal };
+    }
+  });
+}, { deep: true });
+
+// 监听本地表单数据变化，触发更新事件
+watch(form, (newVal) => {
+  nextTick(() => {
+    // 避免不必要的更新
+    if (JSON.stringify(newVal) !== JSON.stringify(props.modelValue)) {
+      emit('update:modelValue', { ...newVal });
+    }
+  });
 }, { deep: true });
 
 // 表单校验规则
@@ -126,8 +140,13 @@ const selectedThemeImage = ref('');
 
 // 选择预设主题色
 const selectPredefinedTheme = (theme) => {
-  form.value.mainTheme = theme.main;
-  form.value.secondTheme = theme.second;
+  // 创建一个新的对象来更新表单数据
+  const newForm = {
+    ...form.value,
+    mainTheme: theme.main,
+    secondTheme: theme.second
+  };
+  form.value = newForm;
   selectedThemeImage.value = `/images/theme/${theme.image}`;
   ElMessage.success(`已应用预设主题: ${theme.name}`);
 };

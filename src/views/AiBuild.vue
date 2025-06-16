@@ -200,7 +200,7 @@ import request from '../utils/request'
 import SockJS from 'sockjs-client'
 import { Stomp } from '@stomp/stompjs'
 import { pinyin } from 'pinyin-pro'
-import CustomSteps from '../components/CustomSteps.vue'
+import CustomSteps from '../components/common/CustomSteps.vue'
 
 const router = useRouter()
 const currentStep = ref(0)

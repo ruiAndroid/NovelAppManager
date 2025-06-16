@@ -53,6 +53,14 @@ const routes = [
     name: 'AiCreate',
     component: () => import('../views/AiCreate.vue'),
     meta: { title: '创意小程序孵化器' }
+  },
+  {
+    path: '/generate-app',
+    name: 'generate-app',
+    component: () => import('../components/aiCreate/AiCreateGenerateApp.vue'),
+    meta: {
+      title: '小程序生成'
+    }
   }
 ]
 
