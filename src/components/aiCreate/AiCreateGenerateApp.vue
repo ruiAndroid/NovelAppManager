@@ -3,12 +3,41 @@
     <el-card class="workflow-container">
       <template #header>
         <div class="header">
-          <h3>小程序生成</h3>
+          <h3>小程序创建</h3>
         </div>
       </template>
       <div class="workflow-content">
-        <div class="placeholder-content">
-          <el-empty description="小程序生成模块开发中..." />
+        <div v-if="loading" class="placeholder-content">
+          <el-empty description="正在连接日志服务..." />
+        </div>
+        
+        <div class="log-timeline-container" ref="logContentRef">
+          <transition-group name="log-item-fade" tag="div">
+            <div v-for="log in logs" :key="log.id" :class="['log-item', log.status]">
+              <div class="log-icon">
+                <template v-if="log.status === 'success'">
+                  <span class="icon-bg success"><el-icon><CircleCheckFilled /></el-icon></span>
+                </template>
+                <template v-else-if="log.status === 'error'">
+                  <span class="icon-bg error"><el-icon><CircleCloseFilled /></el-icon></span>
+                </template>
+                <template v-else-if="log.status === 'processing'">
+                  <span class="icon-bg processing"><el-icon class="spin"><Loading /></el-icon></span>
+                </template>
+                <template v-else>
+                  <span class="icon-bg info"><el-icon><InfoFilled /></el-icon></span>
+                </template>
+              </div>
+              <div class="log-content-wrapper">
+                <p class="log-message">{{ log.message }}</p>
+                <span class="log-timestamp">{{ log.timestamp }}</span>
+              </div>
+            </div>
+          </transition-group>
+        </div>
+        
+        <div v-if="!logs.length && !loading" class="placeholder-content">
+          <el-empty description="暂无生成日志" />
         </div>
       </div>
     </el-card>
@@ -16,18 +45,96 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted, ref, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
-import { useAppGenerationStore } from '../../stores/appGenerationStore'; // 导入 Pinia store
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
+import {
+  CircleCheckFilled,
+  CircleCloseFilled,
+  InfoFilled,
+  Loading,
+} from '@element-plus/icons-vue';
 
 const route = useRoute();
-const appGenerationStore = useAppGenerationStore(); // 使用 Pinia store
+
+const logs = ref([]);
+const loading = ref(true); // Start with loading true
+const logContentRef = ref(null);
+let stompClient = null;
+
+const subscribeCreateLog = (taskId) => {
+  const socket = new SockJS(`${window.location.protocol}//${window.location.hostname}:8080/ws`);
+  stompClient = new Client({
+    webSocketFactory: () => socket,
+    reconnectDelay: 5000,
+    heartbeatIncoming: 0,
+    heartbeatOutgoing: 0,
+    debug: () => {},
+    onConnect: () => {
+      loading.value = false;
+      stompClient.subscribe(`/topic/novel-create-log/${taskId}`, (msg) => {
+        if (msg.body) {
+          const logData = JSON.parse(msg.body);
+          
+          const newLog = {
+            id: Date.now() + Math.random(),
+            message: logData.message,
+            status: logData.type,
+            timestamp: logData.timestamp,
+          };
+
+          logs.value.push(newLog);
+          
+          nextTick(() => {
+            if (logContentRef.value) {
+              logContentRef.value.scrollTop = logContentRef.value.scrollHeight;
+            }
+          });
+          
+          if (logData.type === 'finish') {
+            setTimeout(disconnectLog, 2000);
+          }
+        }
+      });
+    },
+    onStompError: (frame) => {
+      loading.value = false;
+      logs.value.push({
+        id: Date.now(),
+        message: `连接日志服务失败: ${frame.headers['message']}`,
+        status: 'error',
+        timestamp: new Date().toLocaleTimeString('en-GB'),
+      });
+    },
+  });
+  stompClient.activate();
+};
+
+const disconnectLog = () => {
+  if (stompClient) {
+    stompClient.deactivate();
+    stompClient = null;
+  }
+};
 
 onMounted(() => {
-  // 从 Pinia store 获取配置数据
-  const configData = appGenerationStore.getConfigData();
-  console.log('Received config data from Pinia:', configData);
-  // TODO: 使用配置数据开始生成流程
+  const taskId = route.query.taskId;
+  if (!taskId) {
+    loading.value = false;
+    logs.value.push({
+      id: Date.now(),
+      message: '错误：未获取到任务ID，无法订阅日志。',
+      status: 'error',
+      timestamp: new Date().toLocaleTimeString('en-GB'),
+    });
+    return;
+  }
+  subscribeCreateLog(taskId);
+});
+
+onUnmounted(() => {
+  disconnectLog();
 });
 </script>
 
@@ -39,16 +146,118 @@ onMounted(() => {
 .workflow-container {
   max-width: 1200px;
   margin: 0 auto;
+  border-radius: 12px;
 }
 
 .header {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 600;
 }
 
 .workflow-content {
+  padding: 10px 20px;
+}
+
+.log-timeline-container {
+  background-color: #f9fafb;
+  border-radius: 8px;
   padding: 20px;
+  min-height: 200px;
+  max-height: 50vh;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+}
+
+.log-item {
+  display: flex;
+  align-items: flex-start;
+  position: relative;
+  padding-left: 48px; /* Increased padding for larger icon */
+  margin-bottom: 15px;
+}
+
+.log-item::before {
+  content: '';
+  position: absolute;
+  left: 15px; /* (32px icon / 2) - 1px for line width */
+  top: 5px;
+  bottom: -15px;
+  width: 2px;
+  background-color: #e5e7eb;
+  z-index: 0;
+}
+
+.log-item:last-child::before {
+  display: none;
+}
+
+.log-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+}
+
+.log-icon .icon-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 18px; /* Adjusted icon font size */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.log-item.success .icon-bg {
+  background: linear-gradient(135deg, #67c23a, #95d475);
+  color: #fff;
+}
+
+.log-item.error .icon-bg {
+  background: linear-gradient(135deg, #f56c6c, #f89898);
+  color: #fff;
+}
+
+.log-item.info .icon-bg,
+.log-item.processing .icon-bg,
+.log-item.finish .icon-bg {
+  background: linear-gradient(135deg, #409eff, #79bbff);
+  color: #fff;
+}
+
+.log-icon .icon-bg:hover {
+  transform: scale(1.15);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.log-content-wrapper {
+  padding-top: 4px;
+}
+
+.log-message {
+  margin: 0;
+  line-height: 1.5;
+  color: #303133;
+  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+.log-timestamp {
+  font-size: 0.75rem;
+  color: #909399;
+  margin-top: 4px;
 }
 
 .placeholder-content {
@@ -57,8 +266,15 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   min-height: 300px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  border: 1px dashed #dcdfe6;
+}
+
+/* Animation */
+.log-item-fade-enter-active {
+  transition: all 0.5s ease;
+}
+
+.log-item-fade-enter-from {
+  opacity: 0;
+  transform: translateY(20px);
 }
 </style> 

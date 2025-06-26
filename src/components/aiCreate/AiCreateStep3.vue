@@ -8,10 +8,10 @@
 
       <el-form-item label="支付卡片样式" prop="payCardStyle" class="pay-card-style-item">
         <el-radio-group v-model="form.payCardStyle">
-          <el-radio :value="1" label="样式1" />
-          <el-radio :value="2" label="样式2" />
-          <el-radio :value="3" label="样式3" />
-          <el-radio :value="4" label="样式4" />
+          <el-radio :value="1">样式1</el-radio>
+          <el-radio :value="2">样式2</el-radio>
+          <el-radio :value="3">样式3</el-radio>
+          <el-radio :value="4">样式4</el-radio>
         </el-radio-group>
         <div v-if="selectedPayCardImage" class="pay-card-image-preview">
           <img :src="selectedPayCardImage" alt="支付卡片样式预览" />
@@ -28,7 +28,7 @@
       </el-form-item>
 
       <!-- Conditionally show Douyin field -->
-      <template v-if="platform === '抖音'">
+      <template v-if="platform === 'douyin'">
         <el-form-item label="抖音IM ID" prop="douyinImId">
           <el-input v-model="form.douyinImId" placeholder="请输入抖音IM ID" />
         </el-form-item>
@@ -43,7 +43,7 @@
       </template>
 
       <!-- Conditionally show Weixin fields -->
-      <template v-if="platform === '微信'">
+      <template v-if="platform === 'weixin'">
         <el-form-item label="微信AppToken" prop="weixinAppToken">
           <el-input
             v-model="form.weixinAppToken"
@@ -55,7 +55,7 @@
       </template>
 
       <!-- Conditionally show Kuaishou fields -->
-      <template v-if="platform === '快手'">
+      <template v-if="platform === 'kuaishou'">
         <el-form-item label="快手Client ID" prop="kuaishouClientId">
           <el-input v-model="form.kuaishouClientId" placeholder="请输入快手Client ID" />
         </el-form-item>
@@ -72,10 +72,15 @@
         </el-form-item>
       </template>
 
+      <el-form-item label="IAA模式">
+        <el-switch v-model="form.iaaMode" />
+        <span class="form-tip">是否开启IAA(In-App-Advertising)模式</span>
+      </el-form-item>
+
       <el-form-item label="我的页登录类型" class="login-type-item">
         <el-radio-group v-model="form.mineLoginType">
-          <el-radio label="anonymousLogin">静默登录</el-radio>
-          <el-radio label="phoneLogin">
+          <el-radio value="anonymousLogin">静默登录</el-radio>
+          <el-radio value="phoneLogin">
             手机号授权登录
             <span class="form-tip">无手机号权限的小程序默认使用静默登录</span>
           </el-radio>
@@ -84,8 +89,8 @@
 
       <el-form-item label="阅读页登录类型" class="login-type-item">
         <el-radio-group v-model="form.readerLoginType">
-          <el-radio label="anonymousLogin">静默登录</el-radio>
-          <el-radio label="phoneLogin">
+          <el-radio value="anonymousLogin">静默登录</el-radio>
+          <el-radio value="phoneLogin">
             手机号授权登录
             <span class="form-tip">无手机号权限的小程序默认使用静默登录</span>
           </el-radio>
@@ -139,7 +144,7 @@ const formRules = {
   readerLoginType: [{ required: true, message: '请选择阅读页登录类型', trigger: 'change' }],
   'douyinImId': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '抖音' && !value) {
+      if (props.platform === 'douyin' && !value) {
         callback(new Error('请输入抖音IM ID'));
       } else {
         callback();
@@ -149,7 +154,7 @@ const formRules = {
   }],
   'kuaishouClientId': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '快手' && !value) {
+      if (props.platform === 'kuaishou' && !value) {
         callback(new Error('请输入快手Client ID'));
       } else {
         callback();
@@ -159,7 +164,7 @@ const formRules = {
   }],
   'kuaishouClientSecret': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '快手' && !value) {
+      if (props.platform === 'kuaishou' && !value) {
         callback(new Error('请输入快手Client Secret'));
       } else {
         callback();

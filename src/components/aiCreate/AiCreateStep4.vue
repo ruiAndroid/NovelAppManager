@@ -78,6 +78,7 @@ const formattedConfigData = computed(() => {
       kuaishouClientId: props.generalConfigForm.kuaishouClientId,
       kuaishouClientSecret: props.generalConfigForm.kuaishouClientSecret,
       mineLoginType: props.generalConfigForm.mineLoginType,
+      iaaMode: props.generalConfigForm.iaaMode,
       payCardStyle: props.generalConfigForm.payCardStyle,
       readerLoginType: props.generalConfigForm.readerLoginType,
       weixinAppToken: props.generalConfigForm.weixinAppToken,
@@ -85,18 +86,18 @@ const formattedConfigData = computed(() => {
     adConfig: {
       appId: props.basicInfoForm.appid,
       reward: {
-        rewardAdId: props.adConfigForm.rewardPay.rewardAdId,
-        rewardCount: props.adConfigForm.rewardPay.rewardCount,
-        isRewardAdEnabled: props.adConfigForm.rewardPay.enabled,
+        rewardAdId: props.adConfigForm.rewardAd.rewardAdId,
+        rewardCount: props.adConfigForm.rewardAd.rewardCount,
+        isRewardAdEnabled: props.adConfigForm.rewardAd.enabled,
       },
       interstitial: {
-        interstitialAdId: props.adConfigForm.interstitialPay.interstitialAdId,
-        interstitialCount: props.adConfigForm.interstitialPay.interstitialCount,
-        isInterstitialAdEnabled: props.adConfigForm.interstitialPay.enabled,
+        interstitialAdId: props.adConfigForm.interstitialAd.interstitialAdId,
+        interstitialCount: props.adConfigForm.interstitialAd.interstitialCount,
+        isInterstitialAdEnabled: props.adConfigForm.interstitialAd.enabled,
       },
       nativeAd: {
-        nativeAdId: props.adConfigForm.nativePay.nativeAdId,
-        isNativeAdEnabled: props.adConfigForm.nativePay.enabled,
+        nativeAdId: props.adConfigForm.nativeAd.nativeAdId,
+        isNativeAdEnabled: props.adConfigForm.nativeAd.enabled,
       },
     },
   };

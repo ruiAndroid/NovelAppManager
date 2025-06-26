@@ -90,7 +90,7 @@
               {{ selectedPlatform }}
             </el-tag>
           </h3>
-          <div style="display: flex; align-items: center; gap: 15px;">
+          <div style="display: flex; align-items: center; gap: 15px; margin-left: 15px;">
             <el-input
               v-model="searchQuery"
               placeholder="搜索小程序"
@@ -101,7 +101,7 @@
                 <el-icon><Search /></el-icon>
               </template>
             </el-input>
-            <el-button type="primary" @click="handleAddApp">快速创建小程序</el-button>
+            <!-- <el-button type="primary" @click="handleAddApp">快速创建小程序</el-button> -->
           </div>
         </div>
       </template>
@@ -735,7 +735,7 @@ onMounted(() => {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
 }
 

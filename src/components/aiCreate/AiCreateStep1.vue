@@ -9,10 +9,10 @@
         </el-form-item>
         <el-form-item label="platform" prop="platform">
           <el-select v-model="form.platform" placeholder="请选择平台" style="width: 100%;">
-            <el-option label="抖音小程序" value="抖音" />
-            <el-option label="快手小程序" value="快手" />
-            <el-option label="微信小程序" value="微信" />
-            <el-option label="百度小程序" value="百度" />
+            <el-option label="抖音小程序" value="douyin" />
+            <el-option label="快手小程序" value="kuaishou" />
+            <el-option label="微信小程序" value="weixin" />
+            <el-option label="百度小程序" value="baidu" />
           </el-select>
         </el-form-item>
         <el-form-item label="version" prop="version">
@@ -101,7 +101,7 @@ watch(() => props.modelValue, (newVal) => {
     if (JSON.stringify(newVal) !== JSON.stringify(form.value)) {
       form.value = { ...newVal };
     }
-  });
+});
 }, { deep: true });
 
 // 监听本地表单数据变化，触发更新事件
@@ -131,10 +131,10 @@ const formRules = {
 
 // 预设主题色数据（和AiCreate.vue保持一致）
 const predefinedThemes = ref([
-  { name: '阅界视窗主题色', main: '#2552F5', second: '#dce7ff', image: 'theme_yuejie.jpg' },
-  { name: '悦动故事主题色', main: '#EF5350', second: '#FFEBEE', image: 'theme_yuedong.jpg' },
-  { name: '风行推广主题色', main: '#F86003', second: '#FFEFE7', image: 'theme_fun.jpg' },
-  { name: '漫影主题色', main: '#FF4363', second: '#ffe5eb', image: 'theme_manying.jpg' },
+  { name: '阅界视窗主题色', main: '#2552F5FF', second: '#DCE7FFFF', image: 'theme_yuejie.jpg' },
+  { name: '悦动故事主题色', main: '#EF5350FF', second: '#FFEBEEFF', image: 'theme_yuedong.jpg' },
+  { name: '风行推广主题色', main: '#F86003FF', second: '#FFEFE7FF', image: 'theme_fun.jpg' },
+  { name: '漫影主题色', main: '#FF4363FF', second: '#FFE5EBFF', image: 'theme_manying.jpg' },
 ]);
 const selectedThemeImage = ref('');
 

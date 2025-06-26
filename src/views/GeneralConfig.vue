@@ -168,6 +168,11 @@
                     <el-input v-model="configForm.buildCode" placeholder="请输入构建命令（如 npm run build:xxx）" />
                   </el-form-item>
                   
+                  <el-form-item label="IAA模式">
+                    <el-switch v-model="configForm.iaaMode" />
+                    <span class="form-tip">是否开启IAA(In-App-Advertising)模式</span>
+                  </el-form-item>
+                  
                   <!-- 我的页登录类型 -->
                   <el-form-item label="我的页登录类型" class="login-type-item">
                     <el-radio-group v-model="configForm.mineLoginType">
@@ -260,7 +265,8 @@ const configForm = ref({
   douyinAppToken: '',
   weixinAppToken: '',
   mineLoginType: 'anonymousLogin',
-  readerLoginType: 'anonymousLogin'
+  readerLoginType: 'anonymousLogin',
+  iaaMode: false
 })
 
 // 过滤小程序列表
@@ -355,7 +361,8 @@ const fetchConfig = async (appId) => {
         douyinAppToken: res.data.douyinAppToken || '',
         weixinAppToken: res.data.weixinAppToken || '',
         mineLoginType: res.data.mineLoginType || 'anonymousLogin',
-        readerLoginType: res.data.readerLoginType || 'anonymousLogin'
+        readerLoginType: res.data.readerLoginType || 'anonymousLogin',
+        iaaMode: res.data.iaaMode ?? false
       }
     } else {
       ElMessage.warning(res.message || '获取配置失败，可能该小程序未创建通用配置');
@@ -373,7 +380,8 @@ const fetchConfig = async (appId) => {
         douyinAppToken: '',
         weixinAppToken: '',
         mineLoginType: 'anonymousLogin',
-        readerLoginType: 'anonymousLogin'
+        readerLoginType: 'anonymousLogin',
+        iaaMode: false
       }
     }
   } catch (error) {
@@ -392,7 +400,8 @@ const fetchConfig = async (appId) => {
       douyinAppToken: '',
       weixinAppToken: '',
       mineLoginType: 'anonymousLogin',
-      readerLoginType: 'anonymousLogin'
+      readerLoginType: 'anonymousLogin',
+      iaaMode: false
     }
   } finally {
     loadingConfig.value = false
@@ -455,7 +464,8 @@ const handleSaveConfig = async () => {
       douyinAppToken: configForm.value.douyinAppToken,
       weixinAppToken: configForm.value.weixinAppToken,
       mineLoginType: configForm.value.mineLoginType,
-      readerLoginType: configForm.value.readerLoginType
+      readerLoginType: configForm.value.readerLoginType,
+      iaaMode: configForm.value.iaaMode
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -496,7 +506,8 @@ const handleCreateConfig = async () => {
       douyinAppToken: configForm.value.douyinAppToken,
       weixinAppToken: configForm.value.weixinAppToken,
       mineLoginType: configForm.value.mineLoginType,
-      readerLoginType: configForm.value.readerLoginType
+      readerLoginType: configForm.value.readerLoginType,
+      iaaMode: configForm.value.iaaMode
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -518,7 +529,8 @@ const handleCreateConfig = async () => {
         douyinAppToken: res.data.douyinAppToken || '',
         weixinAppToken: res.data.weixinAppToken || '',
         mineLoginType: res.data.mineLoginType || 'anonymousLogin',
-        readerLoginType: res.data.readerLoginType || 'anonymousLogin'
+        readerLoginType: res.data.readerLoginType || 'anonymousLogin',
+        iaaMode: res.data.iaaMode ?? false
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -568,7 +580,8 @@ const handleDeleteConfig = async () => {
         douyinAppToken: '',
         weixinAppToken: '',
         mineLoginType: 'anonymousLogin',
-        readerLoginType: 'anonymousLogin'
+        readerLoginType: 'anonymousLogin',
+        iaaMode: false
       }
       // 关闭确认对话框
       deleteDialogVisible.value = false
@@ -589,7 +602,8 @@ const handleCopyGeneralConfig = () => {
     const dataToCopy = {
       ...configForm.value,
       mineLoginType: configForm.value.mineLoginType,
-      readerLoginType: configForm.value.readerLoginType
+      readerLoginType: configForm.value.readerLoginType,
+      iaaMode: configForm.value.iaaMode
     }
     localStorage.setItem('generalConfigCopy', JSON.stringify(dataToCopy))
     ElMessage.success('通用配置已复制')
@@ -609,7 +623,8 @@ const handlePasteGeneralConfig = () => {
         ...configForm.value,
         ...parsedData,
         mineLoginType: parsedData.mineLoginType ?? 'anonymousLogin',
-        readerLoginType: parsedData.readerLoginType ?? 'anonymousLogin'
+        readerLoginType: parsedData.readerLoginType ?? 'anonymousLogin',
+        iaaMode: parsedData.iaaMode ?? false
       }
       ElMessage.success('通用配置已粘贴')
     } else {

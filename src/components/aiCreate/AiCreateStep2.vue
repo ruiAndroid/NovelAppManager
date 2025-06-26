@@ -127,7 +127,7 @@
           </el-card>
 
           <!-- 抖钻支付配置 (抖音平台特有) -->
-          <template v-if="platform === '抖音'">
+          <template v-if="platform === 'douyin'">
             <el-card class="payment-type-card" :body-style="{ padding: '0' }">
               <div class="payment-card-wrapper">
                 <div class="payment-card-header" :class="{ 'configured': paymentConfigForm.douzuanPay.enabled && paymentConfigForm.douzuanPay.gatewayAndroid && paymentConfigForm.douzuanPay.gatewayIos }">
@@ -165,7 +165,7 @@
           </template>
 
           <!-- 微信虚拟支付配置 (微信平台特有) -->
-          <template v-if="platform === '微信'">
+          <template v-if="platform === 'weixin'">
             <el-card class="payment-type-card" :body-style="{ padding: '0' }">
               <div class="payment-card-wrapper">
                 <div class="payment-card-header" :class="{ 'configured': paymentConfigForm.wxVirtualPay.enabled && paymentConfigForm.wxVirtualPay.gatewayAndroid && paymentConfigForm.wxVirtualPay.gatewayIos }">
@@ -209,15 +209,15 @@
           <!-- 激励广告配置 -->
           <el-card class="payment-type-card" :body-style="{ padding: '0' }">
             <div class="payment-card-wrapper">
-              <div class="payment-card-header" :class="{ 'configured': adConfigForm.rewardPay.enabled && adConfigForm.rewardPay.rewardAdId && adConfigForm.rewardPay.rewardCount > 0 }">
+              <div class="payment-card-header" :class="{ 'configured': adConfigForm.rewardAd.enabled && adConfigForm.rewardAd.rewardAdId && adConfigForm.rewardAd.rewardCount > 0 }">
                 <div class="payment-type-info">
                   <el-icon><VideoPlay /></el-icon>
                   <div class="payment-type-title">
                     <h4>激励广告</h4>
                   </div>
                 </div>
-                <el-tag size="small" :type="adConfigForm.rewardPay.enabled ? 'success' : 'info'" effect="plain">
-                  {{ adConfigForm.rewardPay.enabled ? '已启用' : '未启用' }}
+                <el-tag size="small" :type="adConfigForm.rewardAd.enabled ? 'success' : 'info'" effect="plain">
+                  {{ adConfigForm.rewardAd.enabled ? '已启用' : '未启用' }}
                 </el-tag>
               </div>
 
@@ -225,16 +225,16 @@
                 <div class="payment-info-list">
                   <div class="payment-info-item">
                     <span class="label">状态</span>
-                    <el-switch v-model="adConfigForm.rewardPay.enabled" />
+                    <el-switch v-model="adConfigForm.rewardAd.enabled" />
                   </div>
-                  <el-form-item label="广告位ID" prop="rewardPay.rewardAdId" class="gateway-form-item">
-                    <div v-if="adConfigForm.rewardPay.enabled">
-                      <el-input v-model="adConfigForm.rewardPay.rewardAdId" placeholder="请输入激励广告ID" />
+                  <el-form-item label="广告位ID" prop="rewardAd.rewardAdId" class="gateway-form-item">
+                    <div v-if="adConfigForm.rewardAd.enabled">
+                      <el-input v-model="adConfigForm.rewardAd.rewardAdId" placeholder="请输入激励广告ID" />
                     </div>
                   </el-form-item>
-                  <el-form-item label="激励次数" prop="rewardPay.rewardCount" class="gateway-form-item">
-                    <div v-if="adConfigForm.rewardPay.enabled">
-                      <el-input-number v-model="adConfigForm.rewardPay.rewardCount" :min="1" />
+                  <el-form-item label="激励次数" prop="rewardAd.rewardCount" class="gateway-form-item">
+                    <div v-if="adConfigForm.rewardAd.enabled">
+                      <el-input-number v-model="adConfigForm.rewardAd.rewardCount" :min="1" />
                     </div>
                   </el-form-item>
                 </div>
@@ -245,15 +245,15 @@
           <!-- 插屏广告配置 -->
           <el-card class="payment-type-card" :body-style="{ padding: '0' }">
             <div class="payment-card-wrapper">
-              <div class="payment-card-header" :class="{ 'configured': adConfigForm.interstitialPay.enabled && adConfigForm.interstitialPay.interstitialAdId && adConfigForm.interstitialPay.interstitialCount > 0 }">
+              <div class="payment-card-header" :class="{ 'configured': adConfigForm.interstitialAd.enabled && adConfigForm.interstitialAd.interstitialAdId && adConfigForm.interstitialAd.interstitialCount > 0 }">
                 <div class="payment-type-info">
                   <el-icon><Picture /></el-icon>
                   <div class="payment-type-title">
                     <h4>插屏广告</h4>
                   </div>
                 </div>
-                <el-tag size="small" :type="adConfigForm.interstitialPay.enabled ? 'success' : 'info'" effect="plain">
-                  {{ adConfigForm.interstitialPay.enabled ? '已启用' : '未启用' }}
+                <el-tag size="small" :type="adConfigForm.interstitialAd.enabled ? 'success' : 'info'" effect="plain">
+                  {{ adConfigForm.interstitialAd.enabled ? '已启用' : '未启用' }}
                 </el-tag>
               </div>
 
@@ -261,16 +261,16 @@
                 <div class="payment-info-list">
                   <div class="payment-info-item">
                     <span class="label">状态</span>
-                    <el-switch v-model="adConfigForm.interstitialPay.enabled" />
+                    <el-switch v-model="adConfigForm.interstitialAd.enabled" />
                   </div>
-                  <el-form-item label="广告位ID" prop="interstitialPay.interstitialAdId" class="gateway-form-item">
-                    <div v-if="adConfigForm.interstitialPay.enabled">
-                      <el-input v-model="adConfigForm.interstitialPay.interstitialAdId" placeholder="请输入插屏广告ID" />
+                  <el-form-item label="广告位ID" prop="interstitialAd.interstitialAdId" class="gateway-form-item">
+                    <div v-if="adConfigForm.interstitialAd.enabled">
+                      <el-input v-model="adConfigForm.interstitialAd.interstitialAdId" placeholder="请输入插屏广告ID" />
                     </div>
                   </el-form-item>
-                  <el-form-item label="展示次数" prop="interstitialPay.interstitialCount" class="gateway-form-item">
-                    <div v-if="adConfigForm.interstitialPay.enabled">
-                      <el-input-number v-model="adConfigForm.interstitialPay.interstitialCount" :min="1" style="width: 100%;" />
+                  <el-form-item label="展示次数" prop="interstitialAd.interstitialCount" class="gateway-form-item">
+                    <div v-if="adConfigForm.interstitialAd.enabled">
+                      <el-input-number v-model="adConfigForm.interstitialAd.interstitialCount" :min="1" style="width: 100%;" />
                     </div>
                   </el-form-item>
                 </div>
@@ -281,15 +281,15 @@
           <!-- 信息流广告配置 -->
           <el-card class="payment-type-card" :body-style="{ padding: '0' }">
             <div class="payment-card-wrapper">
-              <div class="payment-card-header" :class="{ 'configured': adConfigForm.nativePay.enabled && adConfigForm.nativePay.nativeAdId }">
+              <div class="payment-card-header" :class="{ 'configured': adConfigForm.nativeAd.enabled && adConfigForm.nativeAd.nativeAdId }">
                 <div class="payment-type-info">
                   <el-icon><Document /></el-icon>
                   <div class="payment-type-title">
                     <h4>信息流广告</h4>
                   </div>
                 </div>
-                <el-tag size="small" :type="adConfigForm.nativePay.enabled ? 'success' : 'info'" effect="plain">
-                  {{ adConfigForm.nativePay.enabled ? '已启用' : '未启用' }}
+                <el-tag size="small" :type="adConfigForm.nativeAd.enabled ? 'success' : 'info'" effect="plain">
+                  {{ adConfigForm.nativeAd.enabled ? '已启用' : '未启用' }}
                 </el-tag>
               </div>
 
@@ -297,11 +297,11 @@
                 <div class="payment-info-list">
                   <div class="payment-info-item">
                     <span class="label">状态</span>
-                    <el-switch v-model="adConfigForm.nativePay.enabled" />
+                    <el-switch v-model="adConfigForm.nativeAd.enabled" />
                   </div>
-                  <el-form-item label="广告位ID" prop="nativePay.nativeAdId" class="gateway-form-item">
-                    <div v-if="adConfigForm.nativePay.enabled">
-                      <el-input v-model="adConfigForm.nativePay.nativeAdId" placeholder="请输入信息流广告ID" />
+                  <el-form-item label="广告位ID" prop="nativeAd.nativeAdId" class="gateway-form-item">
+                    <div v-if="adConfigForm.nativeAd.enabled">
+                      <el-input v-model="adConfigForm.nativeAd.nativeAdId" placeholder="请输入信息流广告ID" />
                     </div>
                   </el-form-item>
                 </div>
@@ -332,9 +332,9 @@ const props = defineProps({
         wxVirtualPay: { enabled: false, gatewayAndroid: '', gatewayIos: '' },
       },
       adConfig: {
-        rewardPay: { enabled: false, rewardAdId: '', rewardCount: null },
-        interstitialPay: { enabled: false, interstitialAdId: '', interstitialCount: null },
-        nativePay: { enabled: false, nativeAdId: '' },
+        rewardAd: { enabled: false, rewardAdId: '', rewardCount: null },
+        interstitialAd: { enabled: false, interstitialAdId: '', interstitialCount: null },
+        nativeAd: { enabled: false, nativeAdId: '' },
       },
     })
   },
@@ -429,7 +429,7 @@ const paymentConfigFormRules = reactive({
   }],
   'douzuanPay.gatewayAndroid': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '抖音' && paymentConfigForm.douzuanPay.enabled && !value) {
+      if (props.platform === 'douyin' && paymentConfigForm.douzuanPay.enabled && !value) {
         callback(new Error('请输入网关 (Android)'));
       } else {
         callback();
@@ -439,7 +439,7 @@ const paymentConfigFormRules = reactive({
   }],
   'douzuanPay.gatewayIos': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '抖音' && paymentConfigForm.douzuanPay.enabled && !value) {
+      if (props.platform === 'douyin' && paymentConfigForm.douzuanPay.enabled && !value) {
         callback(new Error('请输入网关 (iOS)'));
       } else {
         callback();
@@ -449,7 +449,7 @@ const paymentConfigFormRules = reactive({
   }],
   'wxVirtualPay.gatewayAndroid': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '微信' && paymentConfigForm.wxVirtualPay.enabled && !value) {
+      if (props.platform === 'weixin' && paymentConfigForm.wxVirtualPay.enabled && !value) {
         callback(new Error('请输入网关 (Android)'));
       } else {
         callback();
@@ -459,7 +459,7 @@ const paymentConfigFormRules = reactive({
   }],
   'wxVirtualPay.gatewayIos': [{
     validator: (rule, value, callback) => {
-      if (props.platform === '微信' && paymentConfigForm.wxVirtualPay.enabled && !value) {
+      if (props.platform === 'weixin' && paymentConfigForm.wxVirtualPay.enabled && !value) {
         callback(new Error('请输入网关 (iOS)'));
       } else {
         callback();
@@ -470,9 +470,9 @@ const paymentConfigFormRules = reactive({
 })
 
 const adConfigFormRules = reactive({
-  'rewardPay.rewardAdId': [{
+  'rewardAd.rewardAdId': [{
     validator: (rule, value, callback) => {
-      if (adConfigForm.rewardPay.enabled && !value) {
+      if (adConfigForm.rewardAd.enabled && !value) {
         callback(new Error('请输入激励广告ID'));
       } else {
         callback();
@@ -480,9 +480,9 @@ const adConfigFormRules = reactive({
     },
     trigger: 'blur'
   }],
-  'rewardPay.rewardCount': [{
+  'rewardAd.rewardCount': [{
     validator: (rule, value, callback) => {
-      if (adConfigForm.rewardPay.enabled) {
+      if (adConfigForm.rewardAd.enabled) {
         const numValue = Number(value);
         if (isNaN(numValue) || numValue <= 0) {
           callback(new Error('请输入有效激励次数'));
@@ -495,9 +495,9 @@ const adConfigFormRules = reactive({
     },
     trigger: 'blur'
   }],
-  'interstitialPay.interstitialAdId': [{
+  'interstitialAd.interstitialAdId': [{
     validator: (rule, value, callback) => {
-      if (adConfigForm.interstitialPay.enabled && !value) {
+      if (adConfigForm.interstitialAd.enabled && !value) {
         callback(new Error('请输入插屏广告ID'));
       } else {
         callback();
@@ -505,9 +505,9 @@ const adConfigFormRules = reactive({
     },
     trigger: 'blur'
   }],
-  'interstitialPay.interstitialCount': [{
+  'interstitialAd.interstitialCount': [{
     validator: (rule, value, callback) => {
-      if (adConfigForm.interstitialPay.enabled && (!value || value <= 0)) {
+      if (adConfigForm.interstitialAd.enabled && (!value || value <= 0)) {
         callback(new Error('请输入有效展示次数'));
       } else {
         callback();
@@ -515,9 +515,9 @@ const adConfigFormRules = reactive({
     },
     trigger: 'blur'
   }],
-  'nativePay.nativeAdId': [{
+  'nativeAd.nativeAdId': [{
     validator: (rule, value, callback) => {
-      if (adConfigForm.nativePay.enabled && !value) {
+      if (adConfigForm.nativeAd.enabled && !value) {
         callback(new Error('请输入信息流广告ID'));
       } else {
         callback();
@@ -580,8 +580,8 @@ const validate = async () => {
     const hasEnabledPayment = Object.values(paymentConfigForm).some(payment =>
       payment.enabled &&
       ((payment.gatewayAndroid && payment.gatewayIos) ||
-       (props.platform === '抖音' && payment === paymentConfigForm.douzuanPay) ||
-       (props.platform === '微信' && payment === paymentConfigForm.wxVirtualPay))
+       (props.platform === 'douyin' && payment === paymentConfigForm.douzuanPay) ||
+       (props.platform === 'weixin' && payment === paymentConfigForm.wxVirtualPay))
     );
     if (!hasEnabledPayment) {
       ElMessage.error('请至少启用并配置一种支付方式！');
@@ -620,9 +620,9 @@ const resetFields = () => {
     wxVirtualPay: { enabled: false, gatewayAndroid: '', gatewayIos: '' },
   });
   Object.assign(adConfigForm, {
-    rewardPay: { enabled: false, rewardAdId: '', rewardCount: null },
-    interstitialPay: { enabled: false, interstitialAdId: '', interstitialCount: null },
-    nativePay: { enabled: false, nativeAdId: '' },
+    rewardAd: { enabled: false, rewardAdId: '', rewardCount: null },
+    interstitialAd: { enabled: false, interstitialAdId: '', interstitialCount: null },
+    nativeAd: { enabled: false, nativeAdId: '' },
   });
 };
 

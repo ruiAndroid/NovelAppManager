@@ -8,7 +8,7 @@
             <el-input
               v-model="searchQuery"
               placeholder="搜索小程序"
-              style="width: 200px; margin-right: 15px"
+              style="width: 200px; margin-right: 15px;margin-left: 15px;"
             >
               <template #prefix>
                 <el-icon><Search /></el-icon>
@@ -420,6 +420,8 @@ const convertToBannerConfigItems = (data) => {
     'pay_method': '支付方式',
     'tt_apple_pay': '头条苹果支付',
     'is_im': '是否IM',
+    'ad_banner_switch': 'banner广告配置',
+    'ad_interstitial_switch': '插屏广告配置',
     'homepage_pop_01': '首页弹窗01',
     'homepage_banner_01': '首页横幅01',
     'homepage_banner_02': '首页横幅02',
@@ -522,6 +524,8 @@ const handleCreatePublicSwitch = () => {
     pay_method: '',
     tt_apple_pay: '',
     is_im: '',
+    ad_interstitial_switch:'',
+    ad_banner_switch:'',
     homepage_pop_01: '',
     homepage_banner_01: '',
     homepage_banner_02: '',
@@ -938,7 +942,7 @@ onMounted(() => {
 
 .header {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
   align-items: center;
 }
 

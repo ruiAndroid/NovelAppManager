@@ -76,6 +76,7 @@ import AiCreateStep4 from '../components/aiCreate/AiCreateStep4.vue'
 import AiCreateStep2 from '../components/aiCreate/AiCreateStep2.vue'
 import { useRouter } from 'vue-router'
 import { useAppGenerationStore } from '../stores/appGenerationStore'
+import request from '../utils/request'
 
 const router = useRouter()
 const currentStep = ref(0)
@@ -112,9 +113,9 @@ const step2ConfigForm = ref({
     wxVirtualPay: { enabled: false, gatewayAndroid: '', gatewayIos: '' },
   },
   adConfig: {
-    rewardPay: { enabled: false, rewardAdId: '', rewardCount: null },
-    interstitialPay: { enabled: false, interstitialAdId: '', interstitialCount: null },
-    nativePay: { enabled: false, nativeAdId: '' },
+    rewardAd: { enabled: false, rewardAdId: '', rewardCount: null },
+    interstitialAd: { enabled: false, interstitialAdId: '', interstitialCount: null },
+    nativeAd: { enabled: false, nativeAdId: '' },
   },
 });
 
@@ -170,6 +171,7 @@ const generalConfigForm = ref({
   kuaishouClientId: '',
   kuaishouClientSecret: '',
   kuaishouAppToken: '',
+  iaaMode: false,
 })
 
 const resetWizard = () => {
@@ -296,23 +298,32 @@ const prevStep = () => {
   }
 };
 
-const startGeneration = () => {
+const startGeneration = async () => {
   // 收集所有配置数据
-  const configData = {
-    basicInfo: basicInfoForm.value,
-    microConfig: step2ConfigForm.value.microConfig,
+  const params = {
+    baseConfig: basicInfoForm.value,
+    deliverConfig: step2ConfigForm.value.microConfig,
     paymentConfig: step2ConfigForm.value.paymentConfig,
     adConfig: step2ConfigForm.value.adConfig,
-    generalConfig: generalConfigForm.value
+    commonConfig: generalConfigForm.value
   };
 
-  // 将配置数据存储到 Pinia store
-  appGenerationStore.setConfigData(configData);
-
-  // 跳转到生成模块
-  router.push({
-    name: 'generate-app'
-  });
+  try {
+    const res = await request.post('/api/novel-create/createNovelApp', params);
+    if (!res || res.code !== 200 || !res.data?.taskId) {
+      ElMessage.error(res.message || '创建任务失败');
+      return;
+    }
+    // 将配置数据存储到 Pinia store（如后续页面还需用到）
+    // appGenerationStore.setConfigData(configData);
+    // 跳转到生成模块，并带上taskId
+    router.push({
+      name: 'generate-app',
+      query: { taskId: res.data.taskId }
+    });
+  } catch (e) {
+    // ElMessage.error(e.message || '请求失败');
+  }
 };
 </script>
 
