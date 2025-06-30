@@ -29,7 +29,15 @@
                 </template>
               </div>
               <div class="log-content-wrapper">
-                <p class="log-message">{{ log.message }}</p>
+                <template v-if="log.isJson">
+                  <pre class="json-log">{{ log.prettyJson }}</pre>
+                </template>
+                <template v-else-if="log.isCode">
+                  <pre class="json-log code-log"><code v-html="log.highlightedCode"></code></pre>
+                </template>
+                <template v-else>
+                  <p class="log-message">{{ log.message }}</p>
+                </template>
                 <span class="log-timestamp">{{ log.timestamp }}</span>
               </div>
             </div>
@@ -55,6 +63,11 @@ import {
   InfoFilled,
   Loading,
 } from '@element-plus/icons-vue';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import 'highlight.js/styles/github.css';
+
+hljs.registerLanguage('javascript', javascript);
 
 const route = useRoute();
 
@@ -62,6 +75,36 @@ const logs = ref([]);
 const loading = ref(true); // Start with loading true
 const logContentRef = ref(null);
 let stompClient = null;
+
+function tryFormatJson(msg) {
+  // 直接是对象
+  if (typeof msg === 'object' && msg !== null) {
+    return { isJson: true, prettyJson: JSON.stringify(msg, null, 2), raw: msg };
+  }
+  // 字符串尝试解析
+  if (typeof msg === 'string') {
+    // 处理 export default { ... } 结构
+    if (msg.trim().startsWith('export default')) {
+      // 尝试提取大括号内容
+      const match = msg.match(/export\s+default\s+([\s\S]*)/);
+      if (match && match[1]) {
+        // 直接高亮整个代码片段
+        return { isCode: true, code: msg };
+      }
+      return { isCode: true, code: msg };
+    }
+    // 普通 JSON
+    try {
+      const obj = JSON.parse(msg);
+      if (typeof obj === 'object' && obj !== null) {
+        return { isJson: true, prettyJson: JSON.stringify(obj, null, 2), raw: msg };
+      }
+    } catch {}
+    // 不是JSON字符串
+    return { isJson: false, prettyJson: '', raw: msg };
+  }
+  return { isJson: false, prettyJson: '', raw: msg };
+}
 
 const subscribeCreateLog = (taskId) => {
   const socket = new SockJS(`${window.location.protocol}//${window.location.hostname}:8080/ws`);
@@ -76,15 +119,22 @@ const subscribeCreateLog = (taskId) => {
       stompClient.subscribe(`/topic/novel-create-log/${taskId}`, (msg) => {
         if (msg.body) {
           const logData = JSON.parse(msg.body);
-          
-          const newLog = {
+          const jsonInfo = tryFormatJson(logData.message);
+          let highlightedCode = '';
+          if (jsonInfo.isCode) {
+            highlightedCode = hljs.highlight(jsonInfo.code, { language: 'javascript' }).value;
+          }
+          logs.value.push({
             id: Date.now() + Math.random(),
             message: logData.message,
             status: logData.type,
             timestamp: logData.timestamp,
-          };
-
-          logs.value.push(newLog);
+            isJson: jsonInfo.isJson,
+            prettyJson: jsonInfo.prettyJson,
+            isCode: jsonInfo.isCode,
+            code: jsonInfo.code,
+            highlightedCode,
+          });
           
           nextTick(() => {
             if (logContentRef.value) {
@@ -164,9 +214,9 @@ onUnmounted(() => {
 .log-timeline-container {
   background-color: #f9fafb;
   border-radius: 8px;
-  padding: 20px;
-  min-height: 200px;
-  max-height: 50vh;
+  padding: 32px;
+  min-height: 320px;
+  max-height: 70vh;
   overflow-y: auto;
   border: 1px solid #e5e7eb;
 }
@@ -276,5 +326,36 @@ onUnmounted(() => {
 .log-item-fade-enter-from {
   opacity: 0;
   transform: translateY(20px);
+}
+
+.json-log {
+  background: #f6f8fa;
+  color: #444;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  overflow-x: auto;
+  line-height: 1.6;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.code-log {
+  background: #f6f8fa;
+  color: #24292e;
+  font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+  font-size: 13px;
+  border-left: 4px solid #b3b3b3;
+  padding: 10px 14px;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  overflow-x: auto;
+  line-height: 1.6;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 </style> 
