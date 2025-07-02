@@ -93,14 +93,14 @@
                 </el-empty>
               </template>
               <template v-else>
-                <el-form :model="configForm" label-width="160px">
+                <el-form ref="formRef" :model="configForm" :rules="formRules" label-width="160px">
                   <el-form-item label="配置ID">
                     <span class="readonly-value">{{ configForm.id }}</span>
-            </el-form-item>
+                  </el-form-item>
                   <el-form-item label="AppID">
                     <span class="readonly-value">{{ configForm.appId }}</span>
-            </el-form-item>
-            
+                  </el-form-item>
+                  
                   <!-- Conditionally show Douyin field -->
                   <template v-if="selectedApp.platform === '抖音'">
                     <el-form-item label="抖音IM ID">
@@ -148,8 +148,8 @@
             
                   <el-form-item label="客服URL">
                     <el-input v-model="configForm.contact" placeholder="请输入客服URL" />
-            </el-form-item>
-            
+                  </el-form-item>
+                  
                   <el-form-item label="支付卡片样式">
                     <el-select v-model="configForm.payCardStyle" placeholder="请选择支付卡片样式">
                       <el-option :value="1" label="样式1" />
@@ -157,14 +157,14 @@
                       <el-option :value="3" label="样式3" />
                       <el-option :value="4" label="样式4" />
                     </el-select>
-            </el-form-item>
+                  </el-form-item>
                   <el-form-item label="首页卡片样式">
                     <el-select v-model="configForm.homeCardStyle" placeholder="请选择首页卡片样式">
                       <el-option :value="1" label="样式1" />
                     </el-select>
-            </el-form-item>
-            
-                  <el-form-item label="构建命令">
+                  </el-form-item>
+                  
+                  <el-form-item label="构建命令" prop="buildCode">
                     <el-input v-model="configForm.buildCode" placeholder="请输入构建命令（如 npm run build:xxx）" />
                   </el-form-item>
                   
@@ -200,8 +200,8 @@
                     <el-button type="danger" @click="handleDeleteConfirm" v-if="configForm.id">删除配置</el-button>
                     <el-button @click="handleCopyGeneralConfig">复制配置</el-button>
                     <el-button @click="handlePasteGeneralConfig">粘贴配置</el-button>
-            </el-form-item>
-          </el-form>
+                  </el-form-item>
+                </el-form>
               </template>
             </div>
           </template>
@@ -268,6 +268,26 @@ const configForm = ref({
   readerLoginType: 'anonymousLogin',
   iaaMode: false
 })
+const formRef = ref(null)
+
+const formRules = {
+  buildCode: [
+    { required: true, message: '请输入构建命令', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (/^\d+$/.test(value)) {
+          callback(new Error('构建命令不能为纯数字'));
+        } else if (/^\d/.test(value)) {
+          callback(new Error('构建命令不能以数字开头'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  // ... 你可以把其他字段的校验规则也写在这里
+}
 
 // 过滤小程序列表
 const filteredApps = computed(() => {
@@ -446,7 +466,11 @@ const handleSaveConfig = async () => {
     ElMessage.warning('请先选择小程序')
     return
   }
-
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) {
+    ElMessage.error('请检查表单填写是否正确');
+    return;
+  }
   saving.value = true
   try {
     // 只提交必要的字段
@@ -489,7 +513,11 @@ const handleCreateConfig = async () => {
     ElMessage.warning('请先选择小程序')
     return
   }
-
+  const valid = await formRef.value?.validate().catch(() => false);
+  if (!valid) {
+    ElMessage.error('请检查表单填写是否正确');
+    return;
+  }
   saving.value = true
   try {
     // 只提交必要的字段

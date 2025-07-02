@@ -139,7 +139,21 @@ const formRules = {
   contact: [{ required: true, message: '请输入客服URL', trigger: 'blur' }],
   payCardStyle: [{ required: true, message: '请选择支付卡片样式', trigger: 'change' }],
   homeCardStyle: [{ required: true, message: '请选择首页卡片样式', trigger: 'change' }],
-  buildCode: [{ required: true, message: '请输入构建命令', trigger: 'blur' }],
+  buildCode: [
+    { required: true, message: '请输入构建命令', trigger: 'blur' },
+    {
+      validator: (rule, value, callback) => {
+        if (/^\d+$/.test(value)) {
+          callback(new Error('构建命令不能为纯数字'));
+        } else if (/^\d/.test(value)) {
+          callback(new Error('构建命令不能以数字开头'));
+        } else {
+          callback();
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
   mineLoginType: [{ required: true, message: '请选择我的页登录类型', trigger: 'change' }],
   readerLoginType: [{ required: true, message: '请选择阅读页登录类型', trigger: 'change' }],
   'douyinImId': [{

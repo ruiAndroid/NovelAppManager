@@ -16,6 +16,7 @@
 
 <script setup>
 import { computed } from 'vue';
+import { ElMessage } from 'element-plus';
 
 const props = defineProps({
   basicInfoForm: { type: Object, required: true },
@@ -118,6 +119,14 @@ const blockTitles = {
   payConfig: '支付配置',
   commonConfig: '通用配置',
   adConfig: '广告配置',
+};
+
+const onBuildCodeInput = (val) => {
+  // 只允许非纯数字且非数字开头
+  if (/^\d+$/.test(val) || /^\d/.test(val)) {
+    props.generalConfigForm.buildCode = '';
+    ElMessage.warning('构建命令不能为纯数字或以数字开头');
+  }
 };
 </script>
 

@@ -30,7 +30,7 @@
               </div>
               <div class="log-content-wrapper">
                 <template v-if="log.isJson">
-                  <pre class="json-log">{{ log.prettyJson }}</pre>
+                  <pre class="json-log code-log"><code v-html="log.highlightedJson"></code></pre>
                 </template>
                 <template v-else-if="log.isCode">
                   <pre class="json-log code-log"><code v-html="log.highlightedCode"></code></pre>
@@ -65,9 +65,11 @@ import {
 } from '@element-plus/icons-vue';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
 import 'highlight.js/styles/github.css';
 
 hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('json', json);
 
 const route = useRoute();
 
@@ -77,27 +79,36 @@ const logContentRef = ref(null);
 let stompClient = null;
 
 function tryFormatJson(msg) {
-  // 直接是对象
   if (typeof msg === 'object' && msg !== null) {
-    return { isJson: true, prettyJson: JSON.stringify(msg, null, 2), raw: msg };
+    const pretty = JSON.stringify(msg, null, 2);
+    return {
+      isJson: true,
+      prettyJson: pretty,
+      highlightedJson: hljs.highlight(pretty, { language: 'json' }).value,
+      raw: msg
+    };
   }
-  // 字符串尝试解析
   if (typeof msg === 'string') {
     // 处理 export default { ... } 结构
     if (msg.trim().startsWith('export default')) {
-      // 尝试提取大括号内容
-      const match = msg.match(/export\s+default\s+([\s\S]*)/);
-      if (match && match[1]) {
-        // 直接高亮整个代码片段
-        return { isCode: true, code: msg };
-      }
+      return { isCode: true, code: msg };
+    }
+    // 识别常见 JS 文件内容
+    const jsKeywords = ['import ', 'export ', 'function ', 'const ', 'let ', 'var ', '=>', 'class '];
+    if (jsKeywords.some(kw => msg.includes(kw))) {
       return { isCode: true, code: msg };
     }
     // 普通 JSON
     try {
       const obj = JSON.parse(msg);
       if (typeof obj === 'object' && obj !== null) {
-        return { isJson: true, prettyJson: JSON.stringify(obj, null, 2), raw: msg };
+        const pretty = JSON.stringify(obj, null, 2);
+        return {
+          isJson: true,
+          prettyJson: pretty,
+          highlightedJson: hljs.highlight(pretty, { language: 'json' }).value,
+          raw: msg
+        };
       }
     } catch {}
     // 不是JSON字符串
@@ -134,6 +145,7 @@ const subscribeCreateLog = (taskId) => {
             isCode: jsonInfo.isCode,
             code: jsonInfo.code,
             highlightedCode,
+            highlightedJson: jsonInfo.highlightedJson,
           });
           
           nextTick(() => {
