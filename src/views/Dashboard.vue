@@ -172,7 +172,7 @@
     >
       <el-form :model="appForm" label-width="120px">
         <el-form-item label="platform">
-          <el-select v-model="appForm.platform">
+          <el-select v-model="appForm.platform" :disabled="isEdit">
             <el-option label="抖音小程序" value="抖音" />
             <el-option label="快手小程序" value="快手" />
             <el-option label="微信小程序" value="微信" />
@@ -181,7 +181,7 @@
         </el-form-item>
         
         <el-form-item label="appName">
-          <el-input v-model="appForm.appName" placeholder="请输入小程序名称" />
+          <el-input v-model="appForm.appName" placeholder="请输入小程序名称" :disabled="isEdit" />
         </el-form-item>
         
         <el-form-item label="version">
@@ -201,7 +201,7 @@
         </el-form-item>
         
         <el-form-item label="appid">
-          <el-input v-model="appForm.appid" placeholder="请输入AppID" />
+          <el-input v-model="appForm.appid" placeholder="请输入AppID" :disabled="isEdit" />
         </el-form-item>
         
         <el-form-item label="token_id">
@@ -484,6 +484,24 @@ const handleSave = async () => {
     ElMessage.error('请填写完整信息')
     return
   }
+
+  // 编辑模式下增加二次确认弹窗
+  if (isEdit.value) {
+    try {
+      await ElMessageBox.confirm(
+        '编辑将会同步修改代码，请谨慎操作',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      )
+    } catch (e) {
+      // 用户取消
+      return
+    }
+  }
   
   try {
     loading.value = true
@@ -509,8 +527,6 @@ const handleSave = async () => {
       secondTheme: appForm.value.secondTheme,
       version: appForm.value.version
     }
-
-    
 
     if (isEdit.value) {
       // 添加 id 字段
