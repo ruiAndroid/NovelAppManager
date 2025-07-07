@@ -241,7 +241,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import request from '../utils/request'
 import { pinyin } from 'pinyin-pro'
@@ -474,6 +474,23 @@ const handleSaveConfig = async () => {
     ElMessage.error('请检查表单填写是否正确');
     return;
   }
+
+  // 保存前增加二次确认弹窗
+  try {
+    await ElMessageBox.confirm(
+      '保存将会同步修改代码，请谨慎操作',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      }
+    )
+  } catch (e) {
+    // 用户取消
+    return
+  }
+
   saving.value = true
   try {
     // 只提交必要的字段
@@ -726,10 +743,24 @@ onMounted(() => {
 .config-card {
   flex: 1;
   min-width: 0;
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+}
+
+.config-card :deep(.el-card__body) {
+  flex: 1 1 0%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 24px;
 }
 
 .config-content {
-  min-height: 200px;
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .title-with-tag {
