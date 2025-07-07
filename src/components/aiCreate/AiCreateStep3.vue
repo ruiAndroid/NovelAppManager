@@ -24,7 +24,7 @@
       </el-form-item>
 
       <el-form-item label="构建命令" prop="buildCode">
-        <el-input v-model="form.buildCode" placeholder="请输入构建命令（如 npm run build:xxx）" />
+        <el-input v-model="form.buildCode" placeholder="请输入构建命令（输入npm run build:xxx 的xxx即可）" />
       </el-form-item>
 
       <!-- Conditionally show Douyin field -->

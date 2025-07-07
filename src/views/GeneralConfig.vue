@@ -151,12 +151,15 @@
                   </el-form-item>
                   
                   <el-form-item label="支付卡片样式">
-                    <el-select v-model="configForm.payCardStyle" placeholder="请选择支付卡片样式">
-                      <el-option :value="1" label="样式1" />
-                      <el-option :value="2" label="样式2" />
-                      <el-option :value="3" label="样式3" />
-                      <el-option :value="4" label="样式4" />
-                    </el-select>
+                    <el-radio-group v-model="configForm.payCardStyle" class="pay-card-style-radio-group">
+                      <el-radio :label="1">样式1</el-radio>
+                      <el-radio :label="2">样式2</el-radio>
+                      <el-radio :label="3">样式3</el-radio>
+                      <el-radio :label="4">样式4</el-radio>
+                    </el-radio-group>
+                    <div v-if="payCardStyleImage" class="pay-card-image-preview">
+                      <img :src="payCardStyleImage" alt="支付卡片样式预览" />
+                    </div>
                   </el-form-item>
                   <el-form-item label="首页卡片样式">
                     <el-select v-model="configForm.homeCardStyle" placeholder="请选择首页卡片样式">
@@ -237,7 +240,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import request from '../utils/request'
@@ -664,6 +667,11 @@ const handlePasteGeneralConfig = () => {
   }
 }
 
+const payCardStyleImage = computed(() => {
+  if (!configForm.value.payCardStyle) return '';
+  return `/images/payStyle/pay_style${configForm.value.payCardStyle}.png`;
+});
+
 onMounted(() => {
   fetchApps()
 })
@@ -787,5 +795,30 @@ onMounted(() => {
 .login-type-item :deep(.el-radio__label) {
   display: inline-flex;
   align-items: center;
+}
+
+.pay-card-style-radio-group {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+:deep(.pay-card-style-radio-group .el-radio) {
+  margin-right: 16px;
+  font-size: 15px;
+  padding: 6px 18px;
+}
+
+.pay-card-image-preview {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.pay-card-image-preview img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 </style> 

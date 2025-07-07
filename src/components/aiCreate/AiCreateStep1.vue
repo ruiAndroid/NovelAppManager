@@ -8,12 +8,24 @@
           <el-input v-model="form.appName" placeholder="请输入小程序名称" />
         </el-form-item>
         <el-form-item label="platform" prop="platform">
-          <el-select v-model="form.platform" placeholder="请选择平台" style="width: 100%;">
-            <el-option label="抖音小程序" value="douyin" />
-            <el-option label="快手小程序" value="kuaishou" />
-            <el-option label="微信小程序" value="weixin" />
-            <el-option label="百度小程序" value="baidu" />
-          </el-select>
+          <el-radio-group v-model="form.platform" class="platform-radio-group">
+            <el-radio-button label="douyin">
+              <el-icon style="vertical-align: middle; color: #2c2c2c; margin-right: 6px;"><Platform /></el-icon>
+              抖音小程序
+            </el-radio-button>
+            <el-radio-button label="kuaishou">
+              <el-icon style="vertical-align: middle; color: #ff4e33; margin-right: 6px;"><Share /></el-icon>
+              快手小程序
+            </el-radio-button>
+            <el-radio-button label="weixin">
+              <el-icon style="vertical-align: middle; color: #07c160; margin-right: 6px;"><ChatDotRound /></el-icon>
+              微信小程序
+            </el-radio-button>
+            <el-radio-button label="baidu">
+              <el-icon style="vertical-align: middle; color: #4e6ef2; margin-right: 6px;"><Connection /></el-icon>
+              百度小程序
+            </el-radio-button>
+          </el-radio-group>
         </el-form-item>
         <el-form-item label="version" prop="version">
           <el-input v-model="form.version" placeholder="请输入版本号" />
@@ -78,6 +90,7 @@
 <script setup>
 import { ref, watch, toRefs, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
+import { Platform, Share, ChatDotRound, Connection } from '@element-plus/icons-vue';
 
 const props = defineProps({
   modelValue: {
@@ -227,5 +240,16 @@ defineExpose({ validate });
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+.platform-radio-group {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+:deep(.el-radio-button__inner) {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  padding: 6px 18px;
 }
 </style> 
