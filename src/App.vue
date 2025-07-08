@@ -36,9 +36,14 @@
           <span>通用配置</span>
         </el-menu-item>
         
-        <el-menu-item index="/ai-plus">
+        <el-menu-item index="/wenqu-auto">
           <el-icon><Monitor /></el-icon>
-          <span>AI+</span>
+          <span>文曲自动化</span>
+        </el-menu-item>
+        
+        <el-menu-item index="/wenqu-ai">
+          <el-icon><ChatDotRound /></el-icon>
+          <span>文曲AI</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
@@ -70,7 +75,7 @@
 </template>
 
 <script setup>
-import { Platform, Setting, Picture, Money, Tools, ArrowDown, Monitor } from '@element-plus/icons-vue'
+import { Platform, Setting, Picture, Money, Tools, ArrowDown, Monitor, ChatDotRound } from '@element-plus/icons-vue'
 </script>
 
 <style>

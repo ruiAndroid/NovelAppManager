@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-build-module">
+  <div class="auto-build-module">
     <el-card class="build-container">
       <template #header>
         <div class="header">
@@ -504,7 +504,7 @@ const handleStopBuild = async () => {
 
 // 返回上一页
 const goBack = () => {
-  router.push('/ai-plus')
+  router.push('/wenqu-auto')
 }
 
 // 初始化
@@ -512,7 +512,7 @@ fetchApps()
 </script>
 
 <style scoped>
-.ai-build-module {
+.auto-build-module {
   padding: 20px;
 }
 

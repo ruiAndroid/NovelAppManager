@@ -529,21 +529,21 @@ const adConfigFormRules = reactive({
 
 // Watchers to update internal forms when modelValue changes
 watch(() => props.modelValue.microConfig, (newVal) => {
-  console.log('AiCreateStep2.vue - modelValue.microConfig changed:', toRaw(newVal));
+  console.log('AutoCreateStep2.vue - modelValue.microConfig changed:', toRaw(newVal));
   if (JSON.stringify(toRaw(newVal)) !== JSON.stringify(toRaw(microConfigForm))) {
     Object.assign(microConfigForm, toRaw(newVal));
   }
 }, { deep: true });
 
 watch(() => props.modelValue.paymentConfig, (newVal) => {
-  console.log('AiCreateStep2.vue - modelValue.paymentConfig changed:', toRaw(newVal));
+  console.log('AutoCreateStep2.vue - modelValue.paymentConfig changed:', toRaw(newVal));
   if (JSON.stringify(toRaw(newVal)) !== JSON.stringify(toRaw(paymentConfigForm))) {
     Object.assign(paymentConfigForm, toRaw(newVal));
   }
 }, { deep: true });
 
 watch(() => props.modelValue.adConfig, (newVal) => {
-  console.log('AiCreateStep2.vue - modelValue.adConfig changed:', toRaw(newVal));
+  console.log('AutoCreateStep2.vue - modelValue.adConfig changed:', toRaw(newVal));
   if (JSON.stringify(toRaw(newVal)) !== JSON.stringify(toRaw(adConfigForm))) {
     Object.assign(adConfigForm, toRaw(newVal));
   }
@@ -556,7 +556,7 @@ watch([microConfigForm, paymentConfigForm, adConfigForm], ([newMicro, newPayment
     paymentConfig: toRaw(newPayment),
     adConfig: toRaw(newAd),
   };
-  console.log('AiCreateStep2.vue - Emitting update:modelValue with:', newCombined);
+  console.log('AutoCreateStep2.vue - Emitting update:modelValue with:', newCombined);
   if (JSON.stringify(newCombined) !== JSON.stringify(toRaw(props.modelValue))) {
     emit('update:modelValue', newCombined);
   }

@@ -142,7 +142,7 @@ const formRules = {
   secondTheme: [],
 };
 
-// 预设主题色数据（和AiCreate.vue保持一致）
+// 预设主题色数据（和AutoCreate.vue保持一致）
 const predefinedThemes = ref([
   { name: '阅界视窗主题色', main: '#2552F5FF', second: '#DCE7FFFF', image: 'theme_yuejie.jpg' },
   { name: '悦动故事主题色', main: '#EF5350FF', second: '#FFEBEEFF', image: 'theme_yuedong.jpg' },

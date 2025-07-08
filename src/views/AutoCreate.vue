@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-create-module">
+  <div class="auto-create-module">
     <el-card class="workflow-container">
       <template #header>
         <div class="header">
@@ -13,7 +13,7 @@
         <div class="step-panel">
           <!-- 步骤1: 配置基本信息 -->
           <div v-if="currentStep === 0">
-            <AiCreateStep1
+            <AutoCreateStep1
               v-model="basicInfoForm"
               :current-sub-step="currentSubStep"
               @update:current-sub-step="currentSubStep = $event"
@@ -23,18 +23,18 @@
 
           <!-- 步骤2: 配置支付，广告信息 -->
           <div v-if="currentStep === 1">
-            <AiCreateStep2
+            <AutoCreateStep2
               v-model="step2ConfigForm"
               :platform="basicInfoForm.platform"
               :current-sub-step="currentSubStep"
               @update:current-sub-step="currentSubStep = $event"
-              ref="aiCreateStep2Ref"
+              ref="autoCreateStep2Ref"
             />
           </div>
 
           <!-- 步骤3: 配置其他通用信息 -->
           <div v-if="currentStep === 2">
-            <AiCreateStep3
+            <AutoCreateStep3
               v-model="generalConfigForm"
               :platform="basicInfoForm.platform"
               ref="generalConfigFormRef"
@@ -43,14 +43,14 @@
 
           <!-- 步骤4: 展示配置数据并确认 -->
           <div v-if="currentStep === 3">
-            <AiCreateStep4
+            <AutoCreateStep4
               :basicInfoForm="basicInfoForm"
               :microConfigForm="step2ConfigForm.microConfig"
               :paymentConfigForm="step2ConfigForm.paymentConfig"
               :adConfigForm="step2ConfigForm.adConfig"
               :generalConfigForm="generalConfigForm"
               @reset-wizard="resetWizard"
-              ref="aiCreateStep4Ref"
+              ref="autoCreateStep4Ref"
             />
           </div>
         </div>
@@ -70,10 +70,10 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import CustomSteps from '../components/common/CustomSteps.vue'
-import AiCreateStep1 from '../components/aiCreate/AiCreateStep1.vue'
-import AiCreateStep3 from '../components/aiCreate/AiCreateStep3.vue'
-import AiCreateStep4 from '../components/aiCreate/AiCreateStep4.vue'
-import AiCreateStep2 from '../components/aiCreate/AiCreateStep2.vue'
+import AutoCreateStep1 from '../components/autoCreate/AutoCreateStep1.vue'
+import AutoCreateStep3 from '../components/autoCreate/AutoCreateStep3.vue'
+import AutoCreateStep4 from '../components/autoCreate/AutoCreateStep4.vue'
+import AutoCreateStep2 from '../components/autoCreate/AutoCreateStep2.vue'
 import { useRouter } from 'vue-router'
 import { useAppGenerationStore } from '../stores/appGenerationStore'
 import request from '../utils/request'
@@ -86,7 +86,7 @@ const appGenerationStore = useAppGenerationStore()
 // 表单引用
 const basicInfoStepRef = ref(null)
 const generalConfigFormRef = ref(null)
-const aiCreateStep2Ref = ref(null)
+const autoCreateStep2Ref = ref(null)
 
 // 表单校验规则
 const basicInfoFormRules = reactive({
@@ -178,7 +178,7 @@ const resetWizard = () => {
   currentStep.value = 0;
   currentSubStep.value = 0;
   basicInfoStepRef.value?.resetFields();
-  aiCreateStep2Ref.value?.resetFields();
+  autoCreateStep2Ref.value?.resetFields();
   generalConfigFormRef.value?.resetFields();
 };
 
@@ -203,7 +203,7 @@ const nextStep = async () => {
   } else if (currentStep.value === 1) {
     // 步骤2的子步骤校验
     if (currentSubStep.value === 0) {
-      const valid = await aiCreateStep2Ref.value.validate().catch(() => false);
+      const valid = await autoCreateStep2Ref.value.validate().catch(() => false);
       if (!valid) {
         ElMessage.error('请填写完整的"微距配置"！');
         return;
@@ -211,7 +211,7 @@ const nextStep = async () => {
       currentSubStep.value++;
       return;
     } else if (currentSubStep.value === 1) {
-      const valid = await aiCreateStep2Ref.value.validate().catch(() => false);
+      const valid = await autoCreateStep2Ref.value.validate().catch(() => false);
       if (!valid) {
         ElMessage.error('请填写完整的"支付配置"！');
         return;
@@ -232,7 +232,7 @@ const nextStep = async () => {
       currentSubStep.value++;
       return;
     } else if (currentSubStep.value === 2) {
-      const valid = await aiCreateStep2Ref.value.validate().catch(() => false);
+      const valid = await autoCreateStep2Ref.value.validate().catch(() => false);
       if (!valid) {
         ElMessage.error('请填写完整的"广告配置"！');
         return;
@@ -328,7 +328,7 @@ const startGeneration = async () => {
 </script>
 
 <style scoped>
-.ai-create-module {
+.auto-create-module {
   padding: 20px;
 }
 

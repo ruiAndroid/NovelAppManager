@@ -1,5 +1,5 @@
 <template>
-  <div class="ai-publish-module">
+  <div class="auto-publish-module">
     <el-card class="publish-container">
       <template #header>
         <div class="header">
@@ -634,7 +634,7 @@ const resetPublish = () => {
 
 // 返回上一页
 const goBack = () => {
-  router.push('/ai-plus')
+  router.push('/wenqu-auto')
 }
 
 // 下一步
@@ -708,7 +708,7 @@ const generateDouyinQRCode = async (qrCodeUrl) => {
 </script>
 
 <style scoped>
-.ai-publish-module {
+.auto-publish-module {
   padding: 20px;
 }
 

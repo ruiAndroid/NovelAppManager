@@ -31,36 +31,41 @@ const routes = [
     component: () => import('../views/GeneralConfig.vue')
   },
   {
-    path: '/ai-plus',
-    name: 'AiPlus',
-    component: () => import('../views/AiPlus.vue'),
-    meta: { title: 'AI+' }
+    path: '/wenqu-auto',
+    name: 'WenquAuto',
+    component: () => import('../views/WenquAuto.vue'),
+    meta: { title: '文曲自动化' }
   },
   {
-    path: '/ai-build',
-    name: 'AiBuild',
-    component: () => import('../views/AiBuild.vue'),
+    path: '/auto-build',
+    name: 'AutoBuild',
+    component: () => import('../views/AutoBuild.vue'),
     meta: { title: '智能构建小程序' }
   },
   {
-    path: '/ai-publish',
-    name: 'AiPublish',
-    component: () => import('../views/AiPublish.vue'),
+    path: '/auto-publish',
+    name: 'AutoPublish',
+    component: () => import('../views/AutoPublish.vue'),
     meta: { title: '全平台自动发布中心' }
   },
   {
-    path: '/ai-create',
-    name: 'AiCreate',
-    component: () => import('../views/AiCreate.vue'),
+    path: '/auto-create',
+    name: 'AutoCreate',
+    component: () => import('../views/AutoCreate.vue'),
     meta: { title: '创意小程序孵化器' }
   },
   {
     path: '/generate-app',
     name: 'generate-app',
-    component: () => import('../components/aiCreate/AiCreateGenerateApp.vue'),
+    component: () => import('../components/autoCreate/AutoCreateGenerateApp.vue'),
     meta: {
       title: '小程序生成'
     }
+  },
+  {
+    path: '/wenqu-ai',
+    name: 'WenquAi',
+    component: () => import('../views/WenquAi.vue')
   }
 ]
 

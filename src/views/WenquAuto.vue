@@ -1,9 +1,9 @@
 <template>
-  <div class="ai-plus-module">
+  <div class="wenqu-auto-module">
     <el-card>
       <template #header>
         <div class="header">
-          <h3>创意工坊</h3>
+          <h3>文曲小程序自动化工厂</h3>
         </div>
       </template>
       <div class="feature-grid">
@@ -46,24 +46,6 @@
             </el-tag>
           </div>
         </el-card>
-        <el-card class="feature-card" shadow="hover" disabled>
-         <div class="feature-icon not-open">
-           <el-icon><Lock /></el-icon>
-          </div>
-          <div class="feature-title">文曲智能体</div>
-          <div class="feature-desc">敬请期待，由文曲提供支持的智能体能力。</div>
-          <el-button type="info" plain disabled>暂未开放</el-button>
-        </el-card>
-        <el-card class="feature-card" shadow="hover" disabled>
-         <div class="feature-icon not-open">
-           <el-icon><Lock /></el-icon>
-          </div>
-          <div class="feature-title">更多AI+能力</div>
-          <div class="feature-desc">更多创意与AI能力，敬请期待后续开放。</div>
-          <el-button type="info" plain disabled>暂未开放</el-button>
-        </el-card>
-       
-
       </div>
     </el-card>
   </div>
@@ -76,20 +58,20 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const goToBuild = () => {
-  router.push('/ai-build')
+  router.push('/auto-build')
 }
 
 const goToPublish = () => {
-  router.push('/ai-publish')
+  router.push('/auto-publish')
 }
 
 const goToCreate = () => {
-  router.push('/ai-create')
+  router.push('/auto-create')
 }
 </script>
 
 <style scoped>
-.ai-plus-module {
+.wenqu-auto-module {
   padding: 20px;
 }
 .header {
