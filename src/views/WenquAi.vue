@@ -12,7 +12,7 @@
             <el-icon><Lock /></el-icon>
           </div>
           <div class="feature-title">小文问答</div>
-          <div class="feature-desc">敬请期待，文曲AI驱动的智能对话/向导能力。</div>
+          <div class="feature-desc">文曲AI驱动的智能对话/向导能力。</div>
           <el-button type="info" plain disabled>暂未开放</el-button>
         </el-card>
         <el-card class="feature-card" shadow="hover" disabled>
@@ -20,7 +20,7 @@
             <el-icon><Lock /></el-icon>
           </div>
           <div class="feature-title">文曲智能体</div>
-          <div class="feature-desc">敬请期待，由文曲提供支持的智能体能力。</div>
+          <div class="feature-desc">由文曲提供支持的智能体能力。</div>
           <el-button type="info" plain disabled>暂未开放</el-button>
         </el-card>
         <el-card class="feature-card" shadow="hover" disabled>
@@ -28,7 +28,7 @@
             <el-icon><Lock /></el-icon>
           </div>
           <div class="feature-title">MCP能力</div>
-          <div class="feature-desc">敬请期待，MCP相关AI能力即将开放。</div>
+          <div class="feature-desc">MCP相关AI能力即将开放。</div>
           <el-button type="info" plain disabled>暂未开放</el-button>
         </el-card>
         <el-card class="feature-card" shadow="hover" disabled>

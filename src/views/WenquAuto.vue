@@ -11,8 +11,8 @@
           <div class="feature-icon gen-app">
             <el-icon><DocumentAdd /></el-icon>
           </div>
-          <div class="feature-title">创意小程序孵化器</div>
-          <div class="feature-desc">一键实现idea，自动生成代码，天马行空的想法照进现实。</div>
+          <div class="feature-title">生产小程序</div>
+          <div class="feature-desc">流水线自动批量生产小程序</div>
           <div class="expert-tag">
             <el-tag type="primary" effect="dark" size="large">
               <el-icon><Star /></el-icon>
@@ -24,8 +24,8 @@
           <div class="feature-icon build-app">
             <el-icon><Tools /></el-icon>
           </div>
-          <div class="feature-title">智能构建小程序</div>
-          <div class="feature-desc">基于AI的智能构建系统，快速生成高质量可发布小程序包。</div>
+          <div class="feature-title">编译小程序</div>
+          <div class="feature-desc">构建系统，快速编译可执行小程序包</div>
           <div class="expert-tag">
             <el-tag type="success" effect="dark" size="large">
               <el-icon><Star /></el-icon>
@@ -37,8 +37,8 @@
           <div class="feature-icon publish-center">
             <el-icon><Share /></el-icon>
           </div>
-          <div class="feature-title">全平台自动发布中心</div>
-          <div class="feature-desc">一站式管理与自动发布，覆盖主流小程序平台。</div>
+          <div class="feature-title">发布小程序</div>
+          <div class="feature-desc">集成自动发布/预览生成二维码，覆盖主流小程序平台</div>
           <div class="expert-tag">
             <el-tag type="warning" effect="dark" size="large">
               <el-icon><Star /></el-icon>
