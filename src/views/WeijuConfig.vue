@@ -441,7 +441,8 @@ const convertToBannerConfigItems = (data) => {
     'mediapage_banner_05': '媒体页横幅05',
     'mediapage_banner_06': '媒体页横幅06',
     'mediapage_banner_07': '媒体页横幅07',
-    'mediapage_banner_08': '媒体页横幅08'
+    'mediapage_banner_08': '媒体页横幅08',
+    'playsTotal': '累计播放量'
   }
   
   // 遍历对象的所有属性
@@ -545,7 +546,8 @@ const handleCreatePublicSwitch = () => {
     mediapage_banner_05: '',
     mediapage_banner_06: '',
     mediapage_banner_07: '',
-    mediapage_banner_08: ''
+    mediapage_banner_08: '',
+    playsTotal: ''
   }
 
   // 发送创建请求
