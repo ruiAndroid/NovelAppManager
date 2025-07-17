@@ -1005,4 +1005,35 @@ onMounted(() => {
 .platform-tag {
   margin-left: 8px;
 }
+
+.iaa-dialog-style-radio-group {
+  display: flex;
+  gap: 32px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  align-items: flex-start; /* 新增：让所有radio顶部对齐 */
+}
+.iaa-dialog-style-radio-group :deep(.el-radio) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 140px; /* 保证每个radio有足够宽度 */
+}
+.iaa-style-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.iaa-style-option img {
+  margin-top: 10px;
+  width: 120px;
+  max-width: 100%;
+  max-height: 180px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  object-fit: contain;
+  background: #fff;
+}
 </style> 

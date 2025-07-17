@@ -175,6 +175,21 @@
                     <el-switch v-model="configForm.iaaMode" />
                     <span class="form-tip">是否开启IAA(In-App-Advertising)模式</span>
                   </el-form-item>
+                  <el-form-item v-if="configForm.iaaMode" label="IAA弹窗样式">
+                    <el-radio-group v-model="configForm.iaaDialogStyle" class="iaa-dialog-style-card-group">
+                      <el-radio-button
+                        v-for="item in iaaDialogStyleOptions"
+                        :key="item.value"
+                        :label="item.value"
+                        class="iaa-dialog-style-card"
+                      >
+                        <div class="iaa-dialog-style-card-inner" :class="{ selected: configForm.iaaDialogStyle === item.value }">
+                          <img :src="item.img" :alt="item.label" />
+                          <div class="iaa-dialog-style-label">{{ item.label }}</div>
+                        </div>
+                      </el-radio-button>
+                    </el-radio-group>
+                  </el-form-item>
                   
                   <!-- 我的页登录类型 -->
                   <el-form-item label="我的页登录类型" class="login-type-item">
@@ -269,7 +284,8 @@ const configForm = ref({
   weixinAppToken: '',
   mineLoginType: 'anonymousLogin',
   readerLoginType: 'anonymousLogin',
-  iaaMode: false
+  iaaMode: false,
+  iaaDialogStyle: null
 })
 const formRef = ref(null)
 
@@ -385,7 +401,8 @@ const fetchConfig = async (appId) => {
         weixinAppToken: res.data.weixinAppToken || '',
         mineLoginType: res.data.mineLoginType || 'anonymousLogin',
         readerLoginType: res.data.readerLoginType || 'anonymousLogin',
-        iaaMode: res.data.iaaMode ?? false
+        iaaMode: res.data.iaaMode ?? false,
+        iaaDialogStyle: res.data.iaaDialogStyle ?? null
       }
     } else {
       ElMessage.warning(res.message || '获取配置失败，可能该小程序未创建通用配置');
@@ -404,7 +421,8 @@ const fetchConfig = async (appId) => {
         weixinAppToken: '',
         mineLoginType: 'anonymousLogin',
         readerLoginType: 'anonymousLogin',
-        iaaMode: false
+        iaaMode: false,
+        iaaDialogStyle: null
       }
     }
   } catch (error) {
@@ -424,7 +442,8 @@ const fetchConfig = async (appId) => {
       weixinAppToken: '',
       mineLoginType: 'anonymousLogin',
       readerLoginType: 'anonymousLogin',
-      iaaMode: false
+      iaaMode: false,
+      iaaDialogStyle: null
     }
   } finally {
     loadingConfig.value = false
@@ -509,7 +528,8 @@ const handleSaveConfig = async () => {
       weixinAppToken: configForm.value.weixinAppToken,
       mineLoginType: configForm.value.mineLoginType,
       readerLoginType: configForm.value.readerLoginType,
-      iaaMode: configForm.value.iaaMode
+      iaaMode: configForm.value.iaaMode,
+      iaaDialogStyle: configForm.value.iaaMode ? configForm.value.iaaDialogStyle : null
     }
 
     const res = await request.post('/api/novel-common/updateAppCommonConfig', requestData)
@@ -555,7 +575,8 @@ const handleCreateConfig = async () => {
       weixinAppToken: configForm.value.weixinAppToken,
       mineLoginType: configForm.value.mineLoginType,
       readerLoginType: configForm.value.readerLoginType,
-      iaaMode: configForm.value.iaaMode
+      iaaMode: configForm.value.iaaMode,
+      iaaDialogStyle: configForm.value.iaaMode ? configForm.value.iaaDialogStyle : null
     }
 
     const res = await request.post('/api/novel-common/createAppCommonConfig', requestData)
@@ -578,7 +599,8 @@ const handleCreateConfig = async () => {
         weixinAppToken: res.data.weixinAppToken || '',
         mineLoginType: res.data.mineLoginType || 'anonymousLogin',
         readerLoginType: res.data.readerLoginType || 'anonymousLogin',
-        iaaMode: res.data.iaaMode ?? false
+        iaaMode: res.data.iaaMode ?? false,
+        iaaDialogStyle: res.data.iaaDialogStyle ?? null
       }
     } else {
       throw new Error(res.message || '创建失败')
@@ -629,7 +651,8 @@ const handleDeleteConfig = async () => {
         weixinAppToken: '',
         mineLoginType: 'anonymousLogin',
         readerLoginType: 'anonymousLogin',
-        iaaMode: false
+        iaaMode: false,
+        iaaDialogStyle: null
       }
       // 关闭确认对话框
       deleteDialogVisible.value = false
@@ -651,7 +674,8 @@ const handleCopyGeneralConfig = () => {
       ...configForm.value,
       mineLoginType: configForm.value.mineLoginType,
       readerLoginType: configForm.value.readerLoginType,
-      iaaMode: configForm.value.iaaMode
+      iaaMode: configForm.value.iaaMode,
+      iaaDialogStyle: configForm.value.iaaDialogStyle
     }
     localStorage.setItem('generalConfigCopy', JSON.stringify(dataToCopy))
     ElMessage.success('通用配置已复制')
@@ -672,7 +696,8 @@ const handlePasteGeneralConfig = () => {
         ...parsedData,
         mineLoginType: parsedData.mineLoginType ?? 'anonymousLogin',
         readerLoginType: parsedData.readerLoginType ?? 'anonymousLogin',
-        iaaMode: parsedData.iaaMode ?? false
+        iaaMode: parsedData.iaaMode ?? false,
+        iaaDialogStyle: parsedData.iaaDialogStyle ?? null
       }
       ElMessage.success('通用配置已粘贴')
     } else {
@@ -688,6 +713,22 @@ const payCardStyleImage = computed(() => {
   if (!configForm.value.payCardStyle) return '';
   return `/images/payStyle/pay_style${configForm.value.payCardStyle}.png`;
 });
+
+// IAA弹窗样式选项
+const iaaDialogStyleOptions = [
+  { value: 1, label: '样式1', img: '/images/iaaDialogStyle/iaa_dialog_style1.jpg' },
+  { value: 2, label: '样式2', img: '/images/iaaDialogStyle/iaa_dialog_style2.jpg' }
+]
+
+// IAA模式切换时，自动选中样式1
+watch(() => configForm.value.iaaMode, (val) => {
+  if (val && !configForm.value.iaaDialogStyle) {
+    configForm.value.iaaDialogStyle = 1
+  }
+  if (!val) {
+    configForm.value.iaaDialogStyle = null
+  }
+})
 
 onMounted(() => {
   fetchApps()
@@ -851,5 +892,51 @@ onMounted(() => {
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+/* 新增IAA弹窗样式卡片布局 */
+.iaa-dialog-style-card-group {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0 32px 0;
+}
+.iaa-dialog-style-card {
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+}
+.iaa-dialog-style-card-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid #dcdfe6;
+  border-radius: 6px;
+  background: #fff;
+  padding: 2px 8px 2px 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  min-width: 140px;
+  min-height: 180px;
+}
+.iaa-dialog-style-card-inner.selected,
+.iaa-dialog-style-card-inner:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 8px 0 rgba(64,158,255,0.06); /* 只做轻微阴影，不要蓝色 */
+}
+.iaa-dialog-style-card-inner img {
+  width: 160px;
+  height: 240px;
+  object-fit: contain;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  background: #f8fafc;
+  border: 1px solid #ebeef5;
+}
+.iaa-dialog-style-label {
+  font-size: 15px;
+  color: #333;
+  margin-top: 2px;
+  font-weight: 500;
+  text-align: center;
 }
 </style> 
